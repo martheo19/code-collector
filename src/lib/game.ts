@@ -86,18 +86,27 @@ export type Listing = {
 export async function fetchListings(): Promise<Listing[]> {
   const { data, error } = await supabase
     .from("listings")
-    .select("id, price, seller_id, created_at, cards(*), profiles!listings_seller_id_fkey(username)")
+    .select("id, price, seller_id, created_at, cards(*)")
     .eq("status", "active")
     .order("created_at", { ascending: false });
   if (error) throw error;
-  return (data ?? []).map((row: Record<string, unknown>) => ({
+  const rows = (data ?? []) as Record<string, unknown>[];
+  const sellerIds = [...new Set(rows.map((r) => r["seller_id"] as string))];
+  const names = new Map<string, string>();
+  if (sellerIds.length > 0) {
+    const { data: profiles } = await supabase
+      .from("profiles")
+      .select("id, username")
+      .in("id", sellerIds);
+    for (const p of profiles ?? []) names.set(p.id, p.username);
+  }
+  return rows.map((row) => ({
     id: row["id"] as string,
     price: row["price"] as number,
     seller_id: row["seller_id"] as string,
     created_at: row["created_at"] as string,
     card: row["cards"] as Card,
-    seller:
-      ((row["profiles"] as { username?: string } | null)?.username ?? "joueur"),
+    seller: names.get(row["seller_id"] as string) ?? "joueur",
   }));
 }
 
