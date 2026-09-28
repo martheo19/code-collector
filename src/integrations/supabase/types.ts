@@ -14,16 +14,213 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      cards: {
+        Row: {
+          article: string
+          base_value: number
+          content: string
+          created_at: string
+          id: string
+          rarity: Database["public"]["Enums"]["card_rarity"]
+          ref: string
+          source_code: string
+          source_url: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          article: string
+          base_value?: number
+          content: string
+          created_at?: string
+          id?: string
+          rarity?: Database["public"]["Enums"]["card_rarity"]
+          ref: string
+          source_code: string
+          source_url?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          article?: string
+          base_value?: number
+          content?: string
+          created_at?: string
+          id?: string
+          rarity?: Database["public"]["Enums"]["card_rarity"]
+          ref?: string
+          source_code?: string
+          source_url?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      listings: {
+        Row: {
+          buyer_id: string | null
+          card_id: string
+          created_at: string
+          id: string
+          price: number
+          seller_id: string
+          sold_at: string | null
+          status: string
+          updated_at: string
+          user_card_id: string
+        }
+        Insert: {
+          buyer_id?: string | null
+          card_id: string
+          created_at?: string
+          id?: string
+          price: number
+          seller_id: string
+          sold_at?: string | null
+          status?: string
+          updated_at?: string
+          user_card_id: string
+        }
+        Update: {
+          buyer_id?: string | null
+          card_id?: string
+          created_at?: string
+          id?: string
+          price?: number
+          seller_id?: string
+          sold_at?: string | null
+          status?: string
+          updated_at?: string
+          user_card_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "listings_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "cards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "listings_user_card_id_fkey"
+            columns: ["user_card_id"]
+            isOneToOne: true
+            referencedRelation: "user_cards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          balance: number
+          created_at: string
+          id: string
+          updated_at: string
+          username: string
+        }
+        Insert: {
+          balance?: number
+          created_at?: string
+          id: string
+          updated_at?: string
+          username: string
+        }
+        Update: {
+          balance?: number
+          created_at?: string
+          id?: string
+          updated_at?: string
+          username?: string
+        }
+        Relationships: []
+      }
+      transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          description: string
+          id: string
+          kind: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          description: string
+          id?: string
+          kind: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          description?: string
+          id?: string
+          kind?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_cards: {
+        Row: {
+          acquired_at: string
+          card_id: string
+          created_at: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          acquired_at?: string
+          card_id: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          acquired_at?: string
+          card_id?: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_cards_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "cards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      buy_listing: { Args: { p_listing_id: string }; Returns: undefined }
+      cancel_listing: { Args: { p_listing_id: string }; Returns: undefined }
+      create_listing: {
+        Args: { p_price: number; p_user_card_id: string }
+        Returns: string
+      }
+      open_booster: {
+        Args: never
+        Returns: {
+          card_id: string
+          user_card_id: string
+        }[]
+      }
+      random_rarity: {
+        Args: never
+        Returns: Database["public"]["Enums"]["card_rarity"]
+      }
     }
     Enums: {
-      [_ in never]: never
+      card_rarity: "commune" | "peu_commune" | "rare" | "epique" | "legendaire"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +347,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      card_rarity: ["commune", "peu_commune", "rare", "epique", "legendaire"],
+    },
   },
 } as const
