@@ -16,6 +16,7 @@ import { Route as CatalogueRouteImport } from './routes/catalogue'
 import { Route as AuthenticatedBoostersRouteImport } from './routes/_authenticated/boosters'
 import { Route as AuthenticatedCollectionRouteImport } from './routes/_authenticated/collection'
 import { Route as AuthenticatedMarcheRouteImport } from './routes/_authenticated/marche'
+import { Route as AuthenticatedPortefeuilleRouteImport } from './routes/_authenticated/portefeuille'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -51,6 +52,12 @@ const AuthenticatedMarcheRoute = AuthenticatedMarcheRouteImport.update({
   path: '/marche',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedPortefeuilleRoute =
+  AuthenticatedPortefeuilleRouteImport.update({
+    id: '/portefeuille',
+    path: '/portefeuille',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -59,6 +66,7 @@ export interface FileRoutesByFullPath {
   '/boosters': typeof AuthenticatedBoostersRoute
   '/collection': typeof AuthenticatedCollectionRoute
   '/marche': typeof AuthenticatedMarcheRoute
+  '/portefeuille': typeof AuthenticatedPortefeuilleRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -67,6 +75,7 @@ export interface FileRoutesByTo {
   '/boosters': typeof AuthenticatedBoostersRoute
   '/collection': typeof AuthenticatedCollectionRoute
   '/marche': typeof AuthenticatedMarcheRoute
+  '/portefeuille': typeof AuthenticatedPortefeuilleRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -77,13 +86,27 @@ export interface FileRoutesById {
   '/_authenticated/boosters': typeof AuthenticatedBoostersRoute
   '/_authenticated/collection': typeof AuthenticatedCollectionRoute
   '/_authenticated/marche': typeof AuthenticatedMarcheRoute
+  '/_authenticated/portefeuille': typeof AuthenticatedPortefeuilleRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/auth' | '/catalogue' | '/boosters' | '/collection' | '/marche'
+    | '/'
+    | '/auth'
+    | '/catalogue'
+    | '/boosters'
+    | '/collection'
+    | '/marche'
+    | '/portefeuille'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/catalogue' | '/boosters' | '/collection' | '/marche'
+  to:
+    | '/'
+    | '/auth'
+    | '/catalogue'
+    | '/boosters'
+    | '/collection'
+    | '/marche'
+    | '/portefeuille'
   id:
     | '__root__'
     | '/'
@@ -93,6 +116,7 @@ export interface FileRouteTypes {
     | '/_authenticated/boosters'
     | '/_authenticated/collection'
     | '/_authenticated/marche'
+    | '/_authenticated/portefeuille'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -153,6 +177,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMarcheRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/portefeuille': {
+      id: '/_authenticated/portefeuille'
+      path: '/portefeuille'
+      fullPath: '/portefeuille'
+      preLoaderRoute: typeof AuthenticatedPortefeuilleRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
@@ -160,12 +191,14 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedBoostersRoute: typeof AuthenticatedBoostersRoute
   AuthenticatedCollectionRoute: typeof AuthenticatedCollectionRoute
   AuthenticatedMarcheRoute: typeof AuthenticatedMarcheRoute
+  AuthenticatedPortefeuilleRoute: typeof AuthenticatedPortefeuilleRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedBoostersRoute: AuthenticatedBoostersRoute,
   AuthenticatedCollectionRoute: AuthenticatedCollectionRoute,
   AuthenticatedMarcheRoute: AuthenticatedMarcheRoute,
+  AuthenticatedPortefeuilleRoute: AuthenticatedPortefeuilleRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
