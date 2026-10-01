@@ -52,6 +52,18 @@ function Portefeuille() {
       toast.error(error instanceof Error ? error.message : "Import impossible"),
   });
 
+  const redeemMutation = useMutation({
+    mutationFn: (value: string) => redeemPromoCode(value),
+    onSuccess: (result) => {
+      toast.success(`Code validé : +${result.credits} crédits !`);
+      setCode("");
+      queryClient.invalidateQueries({ queryKey: ["profile"] });
+      queryClient.invalidateQueries({ queryKey: ["transactions"] });
+    },
+    onError: (error) =>
+      toast.error(error instanceof Error ? error.message : "Code invalide"),
+  });
+
   return (
     <AppShell>
       <h1 className="text-3xl">Portefeuille</h1>
