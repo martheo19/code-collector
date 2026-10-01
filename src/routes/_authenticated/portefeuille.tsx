@@ -30,6 +30,7 @@ export const Route = createFileRoute("/_authenticated/portefeuille")({
 function Portefeuille() {
   const queryClient = useQueryClient();
   const [ids, setIds] = useState("");
+  const [code, setCode] = useState("");
   const runImport = useServerFn(importLegifranceArticles);
 
   const { data: profile } = useQuery({ queryKey: ["profile"], queryFn: fetchProfile });
