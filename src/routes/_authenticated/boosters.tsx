@@ -57,7 +57,7 @@ function Boosters() {
         <div>
           <h2 className="font-display text-2xl">Booster « Journal officiel »</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            {BOOSTER_PRICE} crédits — solde actuel : {profile?.balance ?? 0} crédits
+            {BOOSTER_PRICE} Mariannes — solde actuel : {profile?.balance ?? 0} Mariannes
           </p>
         </div>
         <Button

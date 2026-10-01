@@ -1,6 +1,7 @@
+import { MarianneIcon } from "@/components/Marianne";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Coins, LogOut } from "lucide-react";
+import { LogOut } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -49,7 +50,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             {profile ? (
               <>
                 <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary px-3 py-1 text-sm">
-                  <Coins className="size-4 text-gold" />
+                  <MarianneIcon className="size-5" />
                   {profile.balance}
                 </span>
                 <span className="hidden text-sm text-muted-foreground sm:inline">
