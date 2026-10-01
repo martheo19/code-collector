@@ -60,7 +60,7 @@ function Marche() {
     <AppShell>
       <h1 className="text-3xl">Marché des joueurs</h1>
       <p className="mt-2 text-sm text-muted-foreground">
-        {listings?.length ?? 0} annonce(s) en cours — solde : {profile?.balance ?? 0} crédits.
+        {listings?.length ?? 0} annonce(s) en cours — solde : {profile?.balance ?? 0} Mariannes.
       </p>
 
       {isLoading ? (
@@ -94,13 +94,13 @@ function Marche() {
                         disabled={buy.isPending || (profile?.balance ?? 0) < listing.price}
                         onClick={() => buy.mutate(listing.id)}
                       >
-                        Acheter {listing.price} cr.
+                        Acheter {listing.price} M
                       </Button>
                     )
                   }
                 />
                 <p className="px-1 text-xs text-muted-foreground">
-                  Vendu par {mine ? "vous" : listing.seller} · prix {listing.price} crédits
+                  Vendu par {mine ? "vous" : listing.seller} · prix {listing.price} Mariannes
                 </p>
               </div>
             );

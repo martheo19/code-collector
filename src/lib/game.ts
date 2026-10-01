@@ -5,7 +5,8 @@ export type Rarity =
   | "peu_commune"
   | "rare"
   | "epique"
-  | "legendaire";
+  | "legendaire"
+  | "mythique";
 
 export type Card = {
   id: string;
@@ -17,6 +18,13 @@ export type Card = {
   rarity: Rarity;
   base_value: number;
   source_url: string | null;
+  status?: string;
+  status_note?: string | null;
+  circle?: string;
+  category?: string;
+  text_date?: string | null;
+  authority?: string | null;
+  summary?: string | null;
 };
 
 export const rarityLabel: Record<Rarity, string> = {
@@ -25,6 +33,7 @@ export const rarityLabel: Record<Rarity, string> = {
   rare: "Rare",
   epique: "Épique",
   legendaire: "Légendaire",
+  mythique: "Mythique",
 };
 
 export const rarityClass: Record<Rarity, string> = {
@@ -33,6 +42,7 @@ export const rarityClass: Record<Rarity, string> = {
   rare: "text-rarity-rare border-rarity-rare/50",
   epique: "text-rarity-epique border-rarity-epique/50",
   legendaire: "text-rarity-legendaire border-rarity-legendaire/60",
+  mythique: "text-rarity-mythique border-rarity-mythique/70",
 };
 
 export async function fetchCards(): Promise<Card[]> {

@@ -50,6 +50,7 @@
   --color-rarity-rare: var(--rarity-rare);
   --color-rarity-epique: var(--rarity-epique);
   --color-rarity-legendaire: var(--rarity-legendaire);
+  --color-rarity-mythique: var(--rarity-mythique);
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
   --color-chart-3: var(--chart-3);
@@ -100,6 +101,7 @@
   --rarity-rare: oklch(0.66 0.17 258);
   --rarity-epique: oklch(0.66 0.19 320);
   --rarity-legendaire: oklch(0.82 0.15 85);
+  --rarity-mythique: oklch(0.68 0.2 25);
 
   --gradient-hero: linear-gradient(140deg, oklch(0.18 0.048 266) 0%, oklch(0.26 0.075 264) 50%, oklch(0.22 0.09 20) 130%);
   --gradient-gold: linear-gradient(120deg, oklch(0.88 0.11 92), oklch(0.72 0.13 72));

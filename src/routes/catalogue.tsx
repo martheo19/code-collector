@@ -15,6 +15,7 @@ const rarities: (Rarity | "toutes")[] = [
   "rare",
   "epique",
   "legendaire",
+  "mythique",
 ];
 
 export const Route = createFileRoute("/catalogue")({
