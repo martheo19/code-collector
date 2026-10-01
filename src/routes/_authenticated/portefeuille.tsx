@@ -1,15 +1,16 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { Coins } from "lucide-react";
+import { Coins, Gift } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { importLegifranceArticles } from "@/lib/legifrance.functions";
-import { fetchProfile, fetchTransactions } from "@/lib/game";
+import { fetchProfile, fetchTransactions, redeemPromoCode } from "@/lib/game";
 
 export const Route = createFileRoute("/_authenticated/portefeuille")({
   head: () => ({
