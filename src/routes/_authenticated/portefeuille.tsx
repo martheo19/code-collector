@@ -67,6 +67,29 @@ function Portefeuille() {
       </div>
 
       <section className="mt-10">
+        <h2 className="font-display text-xl">Activer un code cadeau</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Saisissez un code pour créditer votre solde. Chaque code n'est utilisable
+          qu'une seule fois par joueur.
+        </p>
+        <div className="mt-3 flex flex-wrap gap-3">
+          <Input
+            value={code}
+            onChange={(e) => setCode(e.target.value.toUpperCase())}
+            placeholder="MARIANNE2026"
+            className="max-w-xs font-mono tracking-widest"
+          />
+          <Button
+            disabled={redeemMutation.isPending || code.trim().length === 0}
+            onClick={() => redeemMutation.mutate(code)}
+          >
+            <Gift className="size-4" />
+            {redeemMutation.isPending ? "Vérification…" : "Activer"}
+          </Button>
+        </div>
+      </section>
+
+      <section className="mt-10">
         <h2 className="font-display text-xl">Historique</h2>
         <div className="surface-panel mt-4 divide-y divide-border">
           {(transactions ?? []).length === 0 ? (
