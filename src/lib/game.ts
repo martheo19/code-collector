@@ -153,3 +153,15 @@ export async function buyListing(listingId: string) {
   const { error } = await supabase.rpc("buy_listing", { p_listing_id: listingId });
   if (error) throw error;
 }
+
+export async function redeemPromoCode(code: string) {
+  const { data, error } = await supabase.rpc("redeem_promo_code", {
+    p_code: code.trim().toUpperCase(),
+  });
+  if (error) throw error;
+  const row = (data ?? [])[0];
+  return {
+    credits: row?.credits_amount ?? 0,
+    balance: row?.new_balance ?? 0,
+  };
+}

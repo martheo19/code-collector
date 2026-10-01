@@ -1,15 +1,16 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { Coins } from "lucide-react";
+import { Coins, Gift } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { importLegifranceArticles } from "@/lib/legifrance.functions";
-import { fetchProfile, fetchTransactions } from "@/lib/game";
+import { fetchProfile, fetchTransactions, redeemPromoCode } from "@/lib/game";
 
 export const Route = createFileRoute("/_authenticated/portefeuille")({
   head: () => ({
@@ -29,6 +30,7 @@ export const Route = createFileRoute("/_authenticated/portefeuille")({
 function Portefeuille() {
   const queryClient = useQueryClient();
   const [ids, setIds] = useState("");
+  const [code, setCode] = useState("");
   const runImport = useServerFn(importLegifranceArticles);
 
   const { data: profile } = useQuery({ queryKey: ["profile"], queryFn: fetchProfile });
@@ -50,6 +52,18 @@ function Portefeuille() {
       toast.error(error instanceof Error ? error.message : "Import impossible"),
   });
 
+  const redeemMutation = useMutation({
+    mutationFn: (value: string) => redeemPromoCode(value),
+    onSuccess: (result) => {
+      toast.success(`Code validé : +${result.credits} crédits !`);
+      setCode("");
+      queryClient.invalidateQueries({ queryKey: ["profile"] });
+      queryClient.invalidateQueries({ queryKey: ["transactions"] });
+    },
+    onError: (error) =>
+      toast.error(error instanceof Error ? error.message : "Code invalide"),
+  });
+
   return (
     <AppShell>
       <h1 className="text-3xl">Portefeuille</h1>
@@ -65,6 +79,29 @@ function Portefeuille() {
           sera ajouté dans une prochaine étape.
         </p>
       </div>
+
+      <section className="mt-10">
+        <h2 className="font-display text-xl">Activer un code cadeau</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Saisissez un code pour créditer votre solde. Chaque code n'est utilisable
+          qu'une seule fois par joueur.
+        </p>
+        <div className="mt-3 flex flex-wrap gap-3">
+          <Input
+            value={code}
+            onChange={(e) => setCode(e.target.value.toUpperCase())}
+            placeholder="MARIANNE2026"
+            className="max-w-xs font-mono tracking-widest"
+          />
+          <Button
+            disabled={redeemMutation.isPending || code.trim().length === 0}
+            onClick={() => redeemMutation.mutate(code)}
+          >
+            <Gift className="size-4" />
+            {redeemMutation.isPending ? "Vérification…" : "Activer"}
+          </Button>
+        </div>
+      </section>
 
       <section className="mt-10">
         <h2 className="font-display text-xl">Historique</h2>
