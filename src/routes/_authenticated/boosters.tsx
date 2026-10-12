@@ -1,13 +1,20 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { Sparkles } from "lucide-react";
+import { Gift, Sparkles } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
 import { AppShell } from "@/components/AppShell";
 import { LawCard } from "@/components/LawCard";
 import { Button } from "@/components/ui/button";
-import { fetchProfile, openBooster, type Card } from "@/lib/game";
+import {
+  FREE_BOOSTERS_PER_DAY,
+  fetchFreeBoosters,
+  fetchProfile,
+  openBooster,
+  openFreeBooster,
+  type Card,
+} from "@/lib/game";
 
 const BOOSTER_PRICE = 150;
 
@@ -30,19 +37,22 @@ function Boosters() {
   const queryClient = useQueryClient();
   const [drawn, setDrawn] = useState<Card[]>([]);
   const { data: profile } = useQuery({ queryKey: ["profile"], queryFn: fetchProfile });
+  const { data: freeLeft = 0 } = useQuery({ queryKey: ["free-boosters"], queryFn: fetchFreeBoosters });
 
-  const mutation = useMutation({
-    mutationFn: openBooster,
-    onSuccess: (cards) => {
-      setDrawn(cards);
-      queryClient.invalidateQueries({ queryKey: ["profile"] });
-      queryClient.invalidateQueries({ queryKey: ["collection"] });
-      queryClient.invalidateQueries({ queryKey: ["transactions"] });
-      toast.success("Booster ouvert !");
-    },
-    onError: (error) =>
-      toast.error(error instanceof Error ? error.message : "Ouverture impossible"),
-  });
+  const onDone = (cards: Card[]) => {
+    setDrawn(cards);
+    queryClient.invalidateQueries({ queryKey: ["profile"] });
+    queryClient.invalidateQueries({ queryKey: ["free-boosters"] });
+    queryClient.invalidateQueries({ queryKey: ["collection"] });
+    queryClient.invalidateQueries({ queryKey: ["transactions"] });
+    toast.success("Booster ouvert !");
+  };
+  const onFail = (error: unknown) =>
+    toast.error(error instanceof Error ? error.message : "Ouverture impossible");
+
+  const mutation = useMutation({ mutationFn: openBooster, onSuccess: onDone, onError: onFail });
+  const free = useMutation({ mutationFn: openFreeBooster, onSuccess: onDone, onError: onFail });
+  const busy = mutation.isPending || free.isPending;
 
   const canOpen = (profile?.balance ?? 0) >= BOOSTER_PRICE;
 
@@ -53,7 +63,20 @@ function Boosters() {
         Un booster contient 3 cartes. Plus la rareté est haute, plus la cote est élevée.
       </p>
 
-      <div className="surface-panel hero-gradient mt-6 flex flex-col items-start gap-4 p-8 md:flex-row md:items-center md:justify-between">
+      <div className="surface-panel mt-6 flex flex-col items-start gap-4 border-gold/40 p-8 md:flex-row md:items-center md:justify-between">
+        <div>
+          <h2 className="font-display text-2xl">Boosters gratuits du jour</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {freeLeft} / {FREE_BOOSTERS_PER_DAY} disponibles — rechargés chaque jour à minuit (heure de Paris).
+          </p>
+        </div>
+        <Button size="lg" variant="secondary" disabled={freeLeft === 0 || busy} onClick={() => free.mutate()}>
+          <Gift className="mr-2 size-4" />
+          {free.isPending ? "Ouverture…" : freeLeft > 0 ? "Ouvrir gratuitement" : "Reviens demain"}
+        </Button>
+      </div>
+
+      <div className="surface-panel hero-gradient mt-4 flex flex-col items-start gap-4 p-8 md:flex-row md:items-center md:justify-between">
         <div>
           <h2 className="font-display text-2xl">Booster « Journal officiel »</h2>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -62,7 +85,7 @@ function Boosters() {
         </div>
         <Button
           size="lg"
-          disabled={!canOpen || mutation.isPending}
+          disabled={!canOpen || busy}
           onClick={() => mutation.mutate()}
         >
           <Sparkles className="mr-2 size-4" />
@@ -75,6 +98,7 @@ function Boosters() {
           Solde insuffisant : revendez des cartes sur le marché pour continuer.
         </p>
       )}
+
 
       {drawn.length > 0 && (
         <section className="mt-10">
