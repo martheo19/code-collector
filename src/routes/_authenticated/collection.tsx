@@ -7,7 +7,17 @@ import { AppShell } from "@/components/AppShell";
 import { LawCard } from "@/components/LawCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { createListing, fetchCollection } from "@/lib/game";
+import { Progress } from "@/components/ui/progress";
+import {
+  createListing,
+  fetchCards,
+  fetchCollection,
+  rarityClass,
+  rarityLabel,
+  type Card,
+  type Rarity,
+} from "@/lib/game";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/collection")({
   head: () => ({
@@ -24,15 +34,45 @@ export const Route = createFileRoute("/_authenticated/collection")({
   component: Collection,
 });
 
+const circleLabels: Record<string, string> = {
+  france: "Droit français",
+  europe: "Droit européen",
+  international: "Droit international",
+};
+const rarityOrder: Rarity[] = ["commune", "peu_commune", "rare", "epique", "legendaire", "mythique"];
+
 function Collection() {
   const queryClient = useQueryClient();
   const [sellingId, setSellingId] = useState<string | null>(null);
   const [price, setPrice] = useState("");
+  const [rarity, setRarity] = useState<Rarity | "toutes">("toutes");
+  const [circle, setCircle] = useState("toutes");
+  const [dupesOnly, setDupesOnly] = useState(false);
 
   const { data: owned, isLoading } = useQuery({
     queryKey: ["collection"],
     queryFn: fetchCollection,
   });
+  const { data: allCards } = useQuery({ queryKey: ["cards"], queryFn: fetchCards });
+
+  const counts = new Map<string, number>();
+  for (const o of owned ?? []) counts.set(o.card.id, (counts.get(o.card.id) ?? 0) + 1);
+  const total = allCards?.length ?? 0;
+  const unique = counts.size;
+  const pct = total ? Math.round((unique / total) * 100) : 0;
+
+  const statFor = (pred: (c: Card) => boolean) => {
+    const all = (allCards ?? []).filter(pred);
+    const have = all.filter((c) => counts.has(c.id)).length;
+    return { have, all: all.length };
+  };
+
+  const visible = (owned ?? []).filter(
+    (o) =>
+      (rarity === "toutes" || o.card.rarity === rarity) &&
+      (circle === "toutes" || (o.card.circle ?? "france") === circle) &&
+      (!dupesOnly || (counts.get(o.card.id) ?? 0) > 1),
+  );
 
   const sell = useMutation({
     mutationFn: ({ id, value }: { id: string; value: number }) => createListing(id, value),
@@ -53,6 +93,62 @@ function Collection() {
         {owned?.length ?? 0} carte(s) en votre possession.
       </p>
 
+      {total > 0 && (
+        <section className="surface-panel mt-6 p-6">
+          <div className="flex items-baseline justify-between">
+            <h2 className="font-display text-xl">Progression</h2>
+            <span className="text-sm text-gold">
+              {unique} / {total} cartes — {pct} %
+            </span>
+          </div>
+          <Progress value={pct} className="mt-3" />
+          <div className="mt-4 grid gap-2 text-sm sm:grid-cols-3">
+            {Object.entries(circleLabels).map(([k, label]) => {
+              const s = statFor((c) => (c.circle ?? "france") === k);
+              return (
+                <div key={k} className="flex justify-between rounded border border-border px-3 py-2">
+                  <span className="text-muted-foreground">{label}</span>
+                  <span>{s.have} / {s.all}</span>
+                </div>
+              );
+            })}
+          </div>
+          <div className="mt-2 grid gap-2 text-xs sm:grid-cols-6">
+            {rarityOrder.map((r) => {
+              const s = statFor((c) => c.rarity === r);
+              return (
+                <div key={r} className={cn("rounded border px-2 py-1 text-center", rarityClass[r])}>
+                  {rarityLabel[r]} {s.have}/{s.all}
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
+      {(owned?.length ?? 0) > 0 && (
+        <div className="mt-6 flex flex-wrap gap-2">
+          <Button size="sm" variant={circle === "toutes" ? "default" : "outline"} onClick={() => setCircle("toutes")}>Tous</Button>
+          {Object.entries(circleLabels).map(([k, label]) => (
+            <Button key={k} size="sm" variant={circle === k ? "default" : "outline"} onClick={() => setCircle(k)}>{label}</Button>
+          ))}
+          <select
+            aria-label="Rareté"
+            value={rarity}
+            onChange={(e) => setRarity(e.target.value as Rarity | "toutes")}
+            className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+          >
+            <option value="toutes">Toutes raretés</option>
+            {rarityOrder.map((r) => (
+              <option key={r} value={r}>{rarityLabel[r]}</option>
+            ))}
+          </select>
+          <Button size="sm" variant={dupesOnly ? "default" : "outline"} onClick={() => setDupesOnly((v) => !v)}>
+            Doublons uniquement
+          </Button>
+        </div>
+      )}
+
       {isLoading ? (
         <p className="mt-8 text-sm text-muted-foreground">Chargement…</p>
       ) : (owned?.length ?? 0) === 0 ? (
@@ -64,7 +160,7 @@ function Collection() {
         </div>
       ) : (
         <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {(owned ?? []).map((item) => (
+          {visible.map((item) => (
             <LawCard
               key={item.id}
               card={item.card}

@@ -133,17 +133,41 @@ export async function fetchTransactions() {
   return data ?? [];
 }
 
+async function drawToCards(ids: string[]): Promise<Card[]> {
+  const { data: cards, error } = await supabase.from("cards").select("*").in("id", ids);
+  if (error) throw error;
+  // Respecte l'ordre du tirage (doublons inclus)
+  return ids.map((id) => (cards ?? []).find((c) => c.id === id)).filter(Boolean) as Card[];
+}
+
 export async function openBooster(): Promise<Card[]> {
   const { data, error } = await supabase.rpc("open_booster");
   if (error) throw error;
-  const ids = (data ?? []).map((d) => d.card_id);
-  const { data: cards, error: cardsError } = await supabase
-    .from("cards")
-    .select("*")
-    .in("id", ids);
-  if (cardsError) throw cardsError;
-  // Respecte l'ordre du tirage (doublons inclus)
-  return ids.map((id) => (cards ?? []).find((c) => c.id === id)).filter(Boolean) as Card[];
+  return drawToCards((data ?? []).map((d) => d.card_id));
+}
+
+export const FREE_BOOSTERS_PER_DAY = 2;
+
+export function parisToday() {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Paris" }).format(new Date());
+}
+
+export async function fetchFreeBoosters(): Promise<number> {
+  const { data: auth } = await supabase.auth.getUser();
+  if (!auth.user) return 0;
+  const { data } = await supabase
+    .from("profiles")
+    .select("free_boosters_used, free_boosters_day")
+    .eq("id", auth.user.id)
+    .maybeSingle();
+  if (!data || data.free_boosters_day !== parisToday()) return FREE_BOOSTERS_PER_DAY;
+  return Math.max(0, FREE_BOOSTERS_PER_DAY - data.free_boosters_used);
+}
+
+export async function openFreeBooster(): Promise<Card[]> {
+  const { data, error } = await supabase.rpc("open_free_booster");
+  if (error) throw error;
+  return drawToCards((data ?? []).map((d) => d.card_id));
 }
 
 export async function createListing(userCardId: string, price: number) {

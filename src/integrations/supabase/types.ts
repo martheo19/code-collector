@@ -135,6 +135,8 @@ export type Database = {
         Row: {
           balance: number
           created_at: string
+          free_boosters_day: string | null
+          free_boosters_used: number
           id: string
           updated_at: string
           username: string
@@ -142,6 +144,8 @@ export type Database = {
         Insert: {
           balance?: number
           created_at?: string
+          free_boosters_day?: string | null
+          free_boosters_used?: number
           id: string
           updated_at?: string
           username: string
@@ -149,6 +153,8 @@ export type Database = {
         Update: {
           balance?: number
           created_at?: string
+          free_boosters_day?: string | null
+          free_boosters_used?: number
           id?: string
           updated_at?: string
           username?: string
@@ -300,6 +306,13 @@ export type Database = {
         Returns: string
       }
       open_booster: {
+        Args: never
+        Returns: {
+          card_id: string
+          user_card_id: string
+        }[]
+      }
+      open_free_booster: {
         Args: never
         Returns: {
           card_id: string
