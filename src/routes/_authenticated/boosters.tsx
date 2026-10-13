@@ -5,7 +5,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { AppShell } from "@/components/AppShell";
-import { LawCard } from "@/components/LawCard";
+import { BoosterReveal } from "@/components/BoosterReveal";
 import { Button } from "@/components/ui/button";
 import {
   FREE_BOOSTERS_PER_DAY,
@@ -36,11 +36,13 @@ export const Route = createFileRoute("/_authenticated/boosters")({
 function Boosters() {
   const queryClient = useQueryClient();
   const [drawn, setDrawn] = useState<Card[]>([]);
+  const [drawKey, setDrawKey] = useState(0);
   const { data: profile } = useQuery({ queryKey: ["profile"], queryFn: fetchProfile });
   const { data: freeLeft = 0 } = useQuery({ queryKey: ["free-boosters"], queryFn: fetchFreeBoosters });
 
   const onDone = (cards: Card[]) => {
     setDrawn(cards);
+    setDrawKey((k) => k + 1);
     queryClient.invalidateQueries({ queryKey: ["profile"] });
     queryClient.invalidateQueries({ queryKey: ["free-boosters"] });
     queryClient.invalidateQueries({ queryKey: ["collection"] });
@@ -101,16 +103,7 @@ function Boosters() {
 
 
       {drawn.length > 0 && (
-        <section className="mt-10">
-          <h2 className="font-display text-xl">Votre tirage</h2>
-          <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {drawn.map((card, i) => (
-              <div key={`${card.id}-${i}`} className="animate-in fade-in zoom-in-95 duration-500">
-                <LawCard card={card} />
-              </div>
-            ))}
-          </div>
-        </section>
+        <BoosterReveal key={drawKey} cards={drawn} userId={profile?.id} onClose={() => setDrawn([])} />
       )}
     </AppShell>
   );
