@@ -8,6 +8,13 @@
       "when": 1791795996029,
       "tag": "0000_daily_free_boosters",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1791891773369,
+      "tag": "0001_discovery_and_indexes",
+      "breakpoints": true
     }
   ]
 }
