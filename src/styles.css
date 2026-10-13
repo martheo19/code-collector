@@ -167,3 +167,16 @@
 @utility tricolore-rule {
   background: linear-gradient(90deg, var(--tricolore-blue) 0 33.3%, oklch(0.98 0 0) 33.3% 66.6%, var(--tricolore-red) 66.6% 100%);
 }
+
+/* Animation d'ouverture des boosters */
+.flip-card { perspective: 1200px; }
+.flip-inner { position: relative; transform-style: preserve-3d; transition: transform 0.8s cubic-bezier(.2,.8,.2,1); }
+.flip-card[data-revealed="true"] .flip-inner { transform: rotateY(180deg); }
+.flip-face { backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+.flip-back { position: absolute; inset: 0; }
+.flip-front { transform: rotateY(180deg); }
+.halo { box-shadow: 0 0 32px 4px var(--halo, transparent); border-radius: 0.75rem; }
+@keyframes pack-burst { 0% { transform: scale(1); opacity: 1; filter: brightness(1); } 60% { transform: scale(1.12) rotate(-2deg); filter: brightness(1.8); } 100% { transform: scale(0.6); opacity: 0; filter: brightness(3); } }
+.pack-burst { animation: pack-burst 0.7s ease-in forwards; }
+@keyframes rare-shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+.rare-shake { animation: rare-shake 0.35s ease-in-out 0.8s 2; }

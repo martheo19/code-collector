@@ -23,6 +23,8 @@ export type Database = {
           circle: string
           content: string
           created_at: string
+          first_discovered_at: string | null
+          first_discovered_by: string | null
           id: string
           rarity: Database["public"]["Enums"]["card_rarity"]
           ref: string
@@ -43,6 +45,8 @@ export type Database = {
           circle?: string
           content: string
           created_at?: string
+          first_discovered_at?: string | null
+          first_discovered_by?: string | null
           id?: string
           rarity?: Database["public"]["Enums"]["card_rarity"]
           ref: string
@@ -63,6 +67,8 @@ export type Database = {
           circle?: string
           content?: string
           created_at?: string
+          first_discovered_at?: string | null
+          first_discovered_by?: string | null
           id?: string
           rarity?: Database["public"]["Enums"]["card_rarity"]
           ref?: string
@@ -305,6 +311,7 @@ export type Database = {
         Args: { p_price: number; p_user_card_id: string }
         Returns: string
       }
+      draw_card: { Args: { p_user: string }; Returns: string }
       open_booster: {
         Args: never
         Returns: {
