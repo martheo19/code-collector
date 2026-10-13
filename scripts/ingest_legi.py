@@ -58,9 +58,9 @@ def main(path):
             f"({esc(a)},{esc(s)},{esc(ar)},{esc(t)},{esc(c)},'{r}',{v},{esc(u)},'en_vigueur','france','code',{esc(d)},'République française',{esc(sm)})"
             for a, s, ar, t, c, r, v, u, d, sm in rows[i:i + 2000])
         sql = ("INSERT INTO public.cards (ref,source_code,article,title,content,rarity,base_value,source_url,status,circle,category,text_date,authority,summary) "
-               f"SELECT * FROM (VALUES {vals}) v(ref,source_code,article,title,content,rarity,base_value,source_url,status,circle,category,text_date,authority,summary) "
+               f"SELECT ref,source_code,article,title,content,rarity::card_rarity,base_value,source_url,status,circle,category,text_date,authority,summary FROM (VALUES {vals}) v(ref,source_code,article,title,content,rarity,base_value,source_url,status,circle,category,text_date,authority,summary) "
                "WHERE NOT EXISTS (SELECT 1 FROM public.cards c WHERE c.source_code=v.source_code AND c.article=v.article) "
-               "ON CONFLICT (ref) DO NOTHING;").replace("'commune'", "'commune'::card_rarity").replace("'peu_commune'", "'peu_commune'::card_rarity").replace("'rare'", "'rare'::card_rarity")
+               "ON CONFLICT (ref) DO NOTHING;")
         subprocess.run(["psql", "-q", "-v", "ON_ERROR_STOP=1"], input=sql, text=True, check=True)
         print("lot", i // 2000 + 1, "ok")
 
