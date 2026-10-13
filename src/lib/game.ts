@@ -25,6 +25,8 @@ export type Card = {
   text_date?: string | null;
   authority?: string | null;
   summary?: string | null;
+  first_discovered_by?: string | null;
+  first_discovered_at?: string | null;
 };
 
 export const rarityLabel: Record<Rarity, string> = {
@@ -44,6 +46,30 @@ export const rarityClass: Record<Rarity, string> = {
   legendaire: "text-rarity-legendaire border-rarity-legendaire/60",
   mythique: "text-rarity-mythique border-rarity-mythique/70",
 };
+
+/** Lien officiel garanti : URL en base, sinon recherche sur le site officiel adapté. */
+export function officialUrl(card: Card): string {
+  if (card.source_url) return card.source_url;
+  const q = encodeURIComponent(`${card.source_code} ${card.article} ${card.title}`.trim());
+  if (card.circle === "europe") {
+    if (card.authority?.includes("droits de l'homme")) return `https://hudoc.echr.coe.int/fre#{"fulltext":["${encodeURIComponent(card.title)}"]}`;
+    return `https://eur-lex.europa.eu/search.html?scope=EURLEX&type=quick&lang=fr&text=${q}`;
+  }
+  if (card.circle === "international") {
+    if (card.authority?.includes("pénale")) return `https://www.icc-cpi.int/fr/search?search=${encodeURIComponent(card.title)}`;
+    if (card.authority?.includes("justice")) return `https://www.icj-cij.org/fr/rechercher?search_api_fulltext=${encodeURIComponent(card.title)}`;
+    return `https://www.un.org/fr/search?q=${encodeURIComponent(card.title)}`;
+  }
+  return `https://www.legifrance.gouv.fr/search/all?tab_selection=all&searchField=ALL&query=${q}`;
+}
+
+export type Discoverer = { username: string; at: string } | null;
+
+export async function fetchDiscoverer(card: Card & { first_discovered_by?: string | null; first_discovered_at?: string | null }): Promise<Discoverer> {
+  if (!card.first_discovered_by || !card.first_discovered_at) return null;
+  const { data } = await supabase.from("profiles").select("username").eq("id", card.first_discovered_by).maybeSingle();
+  return { username: data?.username ?? "joueur", at: card.first_discovered_at };
+}
 
 export async function fetchCards(): Promise<Card[]> {
   const { data, error } = await supabase
