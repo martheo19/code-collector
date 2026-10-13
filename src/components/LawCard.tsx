@@ -1,8 +1,23 @@
-import { ExternalLink } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { Compass, ExternalLink } from "lucide-react";
 
 import { MarianneIcon } from "@/components/Marianne";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { rarityClass, rarityLabel, type Card } from "@/lib/game";
+import { fetchDiscoverer, officialUrl, rarityClass, rarityLabel, type Card } from "@/lib/game";
+
+function DiscovererLine({ card }: { card: Card }) {
+  const { data } = useQuery({
+    queryKey: ["discoverer", card.id, card.first_discovered_by],
+    queryFn: () => fetchDiscoverer(card),
+  });
+  if (!data) return null;
+  return (
+    <p className="inline-flex items-center gap-2 rounded-md border border-gold/40 bg-gold/10 px-3 py-1.5 text-xs text-gold">
+      <Compass className="size-3.5" />
+      Premier découvreur : {data.username} le {new Date(data.at).toLocaleDateString("fr-FR")}
+    </p>
+  );
+}
 import { cn } from "@/lib/utils";
 
 const statusLabel: Record<string, string> = {
@@ -77,13 +92,12 @@ export function LawCard({ card, footer, compact = false }: { card: Card; footer?
             <dt className="text-muted-foreground">Référence</dt><dd>{card.ref}</dd>
             <dt className="text-muted-foreground">Cote</dt><dd className="inline-flex items-center gap-1">{card.base_value} <MarianneIcon /></dd>
           </dl>
+          <DiscovererLine card={card} />
           {card.summary && <p className="text-sm italic text-muted-foreground">{card.summary}</p>}
           <div className="whitespace-pre-line rounded-lg border border-border bg-secondary/40 p-4 text-sm leading-relaxed">{card.content}</div>
-          {card.source_url && (
-            <a href={card.source_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-sm text-gold underline">
-              Source officielle <ExternalLink className="size-3.5" />
-            </a>
-          )}
+          <a href={officialUrl(card)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-sm text-gold underline">
+            Source officielle <ExternalLink className="size-3.5" />
+          </a>
         </DialogContent>
       </Dialog>
       <div className="mt-auto flex items-center justify-between border-t border-border/70 px-4 py-3">
