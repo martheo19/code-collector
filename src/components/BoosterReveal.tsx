@@ -17,7 +17,7 @@ const halo: Record<Rarity, string> = {
 const high: Rarity[] = ["epique", "legendaire", "mythique"];
 
 /** Paquet scellé → éclat → les 3 cartes se retournent automatiquement → synthèse. */
-export function BoosterReveal({ cards, userId, onClose }: { cards: Card[]; userId?: string; onClose: () => void }) {
+export function BoosterReveal({ cards, userId, onClose }: { cards: Card[]; userId?: string | undefined; onClose: () => void }) {
   const [phase, setPhase] = useState<"burst" | "cards">("burst");
   const [revealed, setRevealed] = useState(0);
 
