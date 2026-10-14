@@ -15,6 +15,20 @@
       "when": 1791891773369,
       "tag": "0001_discovery_and_indexes",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791983571850,
+      "tag": "0002_unlimited_test_code",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1791983647021,
+      "tag": "0003_cards_catalog_indexes",
+      "breakpoints": true
     }
   ]
 }

@@ -211,6 +211,8 @@ export type Database = {
           id: string
           is_active: boolean
           max_uses: number | null
+          owner_id: string | null
+          unlimited: boolean
           updated_at: string
           uses_count: number
         }
@@ -222,6 +224,8 @@ export type Database = {
           id?: string
           is_active?: boolean
           max_uses?: number | null
+          owner_id?: string | null
+          unlimited?: boolean
           updated_at?: string
           uses_count?: number
         }
@@ -233,6 +237,8 @@ export type Database = {
           id?: string
           is_active?: boolean
           max_uses?: number | null
+          owner_id?: string | null
+          unlimited?: boolean
           updated_at?: string
           uses_count?: number
         }

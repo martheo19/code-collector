@@ -65,44 +65,44 @@ function yearOf(d?: string | null) {
 
 function Catalogue() {
   const [search, setSearch] = useState("");
+  const [debounced, setDebounced] = useState("");
   const [rarity, setRarity] = useState<Rarity | "toutes">("toutes");
   const [circle, setCircle] = useState<string>("toutes");
   const [status, setStatus] = useState<string>("tous");
   const [sort, setSort] = useState<string>("cote_desc");
-  const { data: cards, isLoading } = useQuery({ queryKey: ["cards"], queryFn: fetchCards });
+  const [page, setPage] = useState(0);
 
-  const filtered = (cards ?? [])
-    .filter((c) => {
-      const matchRarity = rarity === "toutes" || c.rarity === rarity;
-      const matchCircle = circle === "toutes" || (c.circle ?? "france") === circle;
-      const matchStatus = status === "tous" || (c.status ?? "en_vigueur") === status;
-      const q = search.trim().toLowerCase();
-      const matchSearch =
-        q === "" ||
-        c.title.toLowerCase().includes(q) ||
-        c.article.toLowerCase().includes(q) ||
-        c.source_code.toLowerCase().includes(q) ||
-        c.content.toLowerCase().includes(q);
-      return matchRarity && matchCircle && matchStatus && matchSearch;
-    })
-    .sort((a, b) => {
-      if (sort === "cote_asc") return a.base_value - b.base_value;
-      if (sort === "cote_desc") return b.base_value - a.base_value;
-      const ya = yearOf(a.text_date);
-      const yb = yearOf(b.text_date);
-      if (ya === null) return 1;
-      if (yb === null) return -1;
-      return sort === "date_asc" ? ya - yb : yb - ya;
-    });
+  useEffect(() => {
+    const t = setTimeout(() => setDebounced(search), 350);
+    return () => clearTimeout(t);
+  }, [search]);
+  useEffect(() => setPage(0), [debounced, rarity, circle, status, sort]);
+
+  const filters = { search: debounced, rarity, circle, status, sort };
+  const { data, isLoading, isFetching } = useQuery({
+    queryKey: ["cards-page", filters, page],
+    queryFn: () => fetchCardsPage(filters, page),
+    placeholderData: keepPreviousData,
+  });
+  const total = data?.total ?? 0;
+  const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   const selectClass =
     "h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground";
+
+  const pager = (
+    <div className="flex items-center gap-3">
+      <Button size="sm" variant="outline" disabled={page === 0} onClick={() => setPage((p) => p - 1)}>Précédent</Button>
+      <span className="text-sm text-muted-foreground">Page {page + 1} / {pages}</span>
+      <Button size="sm" variant="outline" disabled={page + 1 >= pages} onClick={() => setPage((p) => p + 1)}>Suivant</Button>
+    </div>
+  );
 
   return (
     <AppShell>
       <h1 className="text-3xl">Catalogue</h1>
       <p className="mt-2 text-sm text-muted-foreground">
-        {filtered.length} / {cards?.length ?? 0} cartes affichées.
+        {total.toLocaleString("fr-FR")} cartes correspondent{isFetching ? " · chargement…" : ""}.
       </p>
 
       <div className="mt-6 flex flex-wrap gap-2">
@@ -122,7 +122,7 @@ function Catalogue() {
         <Input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Rechercher un article, un code, un mot-clé…"
+          placeholder="Rechercher un titre, un article, un code…"
           className="md:max-w-sm"
         />
         <select aria-label="Statut" value={status} onChange={(e) => setStatus(e.target.value)} className={selectClass}>
@@ -149,15 +149,18 @@ function Catalogue() {
         ))}
       </div>
 
-
       {isLoading ? (
         <p className="mt-8 text-sm text-muted-foreground">Chargement du catalogue…</p>
       ) : (
-        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((card) => (
-            <LawCard key={card.id} card={card} />
-          ))}
-        </div>
+        <>
+          <div className="mt-6">{pager}</div>
+          <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {(data?.cards ?? []).map((card) => (
+              <LawCard key={card.id} card={card} />
+            ))}
+          </div>
+          <div className="mt-6">{pager}</div>
+        </>
       )}
     </AppShell>
   );

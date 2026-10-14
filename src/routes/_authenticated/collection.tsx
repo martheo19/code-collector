@@ -53,7 +53,7 @@ function Collection() {
     queryKey: ["collection"],
     queryFn: fetchCollection,
   });
-  const { data: allCards } = useQuery({ queryKey: ["cards"], queryFn: fetchCards });
+  const { data: allCards } = useQuery({ queryKey: ["card-index"], queryFn: fetchCardIndex, staleTime: 600_000 });
 
   const counts = new Map<string, number>();
   for (const o of owned ?? []) counts.set(o.card.id, (counts.get(o.card.id) ?? 0) + 1);
@@ -61,7 +61,7 @@ function Collection() {
   const unique = counts.size;
   const pct = total ? Math.round((unique / total) * 100) : 0;
 
-  const statFor = (pred: (c: Card) => boolean) => {
+  const statFor = (pred: (c: Pick<Card, "id" | "rarity" | "circle">) => boolean) => {
     const all = (allCards ?? []).filter(pred);
     const have = all.filter((c) => counts.has(c.id)).length;
     return { have, all: all.length };

@@ -71,13 +71,45 @@ export async function fetchDiscoverer(card: Card & { first_discovered_by?: strin
   return { username: data?.username ?? "joueur", at: card.first_discovered_at };
 }
 
-export async function fetchCards(): Promise<Card[]> {
+export async function fetchCards(limit = 60): Promise<Card[]> {
   const { data, error } = await supabase
     .from("cards")
     .select("*")
-    .order("base_value", { ascending: false });
+    .order("base_value", { ascending: false })
+    .limit(limit);
   if (error) throw error;
   return (data ?? []) as Card[];
+}
+
+/** Index léger de tout le catalogue (id, rareté, cercle) pour les statistiques. */
+export async function fetchCardIndex(): Promise<Pick<Card, "id" | "rarity" | "circle">[]> {
+  const out: Pick<Card, "id" | "rarity" | "circle">[] = [];
+  for (let from = 0; ; from += 1000) {
+    const { data, error } = await supabase.from("cards").select("id, rarity, circle").order("id").range(from, from + 999);
+    if (error) throw error;
+    out.push(...((data ?? []) as Pick<Card, "id" | "rarity" | "circle">[]));
+    if (!data || data.length < 1000) return out;
+  }
+}
+
+export const PAGE_SIZE = 48;
+export type CardFilters = { search: string; rarity: string; circle: string; status: string; sort: string };
+
+/** Page du catalogue filtrée et triée côté base. */
+export async function fetchCardsPage(f: CardFilters, page: number): Promise<{ cards: Card[]; total: number }> {
+  let q = supabase.from("cards").select("*", { count: "exact" });
+  if (f.rarity !== "toutes") q = q.eq("rarity", f.rarity as Rarity);
+  if (f.circle !== "toutes") q = q.eq("circle", f.circle);
+  if (f.status !== "tous") q = q.eq("status", f.status);
+  const s = f.search.trim().replace(/[%,()]/g, " ");
+  if (s) q = q.or(`title.ilike.%${s}%,article.ilike.%${s}%,source_code.ilike.%${s}%`);
+  if (f.sort === "cote_asc") q = q.order("base_value", { ascending: true });
+  else if (f.sort === "date_asc") q = q.order("text_date", { ascending: true, nullsFirst: false });
+  else if (f.sort === "date_desc") q = q.order("text_date", { ascending: false, nullsFirst: false });
+  else q = q.order("base_value", { ascending: false });
+  const { data, error, count } = await q.order("id").range(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE - 1);
+  if (error) throw error;
+  return { cards: (data ?? []) as Card[], total: count ?? 0 };
 }
 
 export async function fetchProfile() {
