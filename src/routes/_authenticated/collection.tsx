@@ -61,7 +61,7 @@ function Collection() {
   const unique = counts.size;
   const pct = total ? Math.round((unique / total) * 100) : 0;
 
-  const statFor = (pred: (c: Card) => boolean) => {
+  const statFor = (pred: (c: Pick<Card, "id" | "rarity" | "circle">) => boolean) => {
     const all = (allCards ?? []).filter(pred);
     const have = all.filter((c) => counts.has(c.id)).length;
     return { have, all: all.length };
