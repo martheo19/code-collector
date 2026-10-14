@@ -28,7 +28,7 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
-  const { data: cards } = useQuery({ queryKey: ["cards"], queryFn: fetchCards });
+  const { data: cards } = useQuery({ queryKey: ["cards-top"], queryFn: () => fetchCards(6) });
   const highlights = (cards ?? []).slice(0, 6);
 
   return (

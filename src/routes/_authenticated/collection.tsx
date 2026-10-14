@@ -53,7 +53,7 @@ function Collection() {
     queryKey: ["collection"],
     queryFn: fetchCollection,
   });
-  const { data: allCards } = useQuery({ queryKey: ["cards"], queryFn: fetchCards });
+  const { data: allCards } = useQuery({ queryKey: ["card-index"], queryFn: fetchCardIndex, staleTime: 600_000 });
 
   const counts = new Map<string, number>();
   for (const o of owned ?? []) counts.set(o.card.id, (counts.get(o.card.id) ?? 0) + 1);
