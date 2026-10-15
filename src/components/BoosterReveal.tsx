@@ -75,11 +75,11 @@ export function BoosterReveal({ cards, userId, onClose }: { cards: Card[]; userI
                     </button>
                     <div className="flip-face flip-front halo" style={{ ["--halo" as string]: shown ? halo[card.rarity] : "transparent" }}>
                       {shown && isNew(card) && (
-                        <p className="absolute left-2 top-2 z-10 inline-flex items-center gap-1 rounded-md bg-gold/15 px-2 py-1 text-xs font-semibold text-gold">
+                        <p className="absolute left-1/2 -top-3 z-10 -translate-x-1/2 whitespace-nowrap inline-flex items-center gap-1 rounded-md bg-gold/15 px-2 py-1 text-xs font-semibold text-gold">
                           <Compass className="size-3.5" /> Première découverte mondiale !
                         </p>
                       )}
-                      {shown && <LawCard card={card} />}
+                      <LawCard card={card} />
                     </div>
                   </div>
                 </div>
