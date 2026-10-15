@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import {
   createListing,
+  fetchCardIndex,
   fetchCards,
   fetchCollection,
   rarityClass,

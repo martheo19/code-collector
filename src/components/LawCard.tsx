@@ -18,6 +18,7 @@ function DiscovererLine({ card }: { card: Card }) {
     </p>
   );
 }
+import { frameFor } from "@/lib/card-frames";
 import { cn } from "@/lib/utils";
 
 const statusLabel: Record<string, string> = {
@@ -44,30 +45,31 @@ export function StatusBadge({ card }: { card: Card }) {
 
 export function LawCard({ card, footer, compact = false }: { card: Card; footer?: React.ReactNode; compact?: boolean }) {
   return (
-    <article
-      className={cn(
-        "group relative flex flex-col overflow-hidden rounded-xl border bg-card shadow-[var(--shadow-card)] transition-transform duration-200 hover:-translate-y-1",
-        rarityClass[card.rarity],
-      )}
-    >
+    <article className="group relative flex flex-col transition-transform duration-200 hover:-translate-y-1">
       <Dialog>
         <DialogTrigger asChild>
-          <button type="button" className="flex flex-1 flex-col text-left" aria-label={`Voir la fiche : ${card.title}`}>
-            <div className="tricolore-rule h-1 w-full opacity-80" />
-            <div className="flex items-start justify-between gap-3 px-4 pt-4">
-              <div>
-                <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">{card.source_code}</p>
-                <h3 className="font-display text-lg leading-tight text-foreground">{card.article}</h3>
+          <button
+            type="button"
+            className="relative block aspect-[420/570] w-full overflow-hidden rounded-2xl text-left shadow-[var(--shadow-card)]"
+            aria-label={`Voir la fiche : ${card.title}`}
+          >
+            <img src={frameFor(card.rarity, card.category)} alt="" aria-hidden className={cn("absolute inset-0 size-full scale-[1.42] object-cover", card.rarity === "peu_commune" && "peu-commune-tint")} />
+            <div className="absolute inset-x-[9%] top-[8%] bottom-[14%] flex flex-col gap-1.5 overflow-hidden rounded-lg bg-background/70 p-3 backdrop-blur-[2px]">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="truncate text-[10px] uppercase tracking-[0.16em] text-muted-foreground">{card.source_code}</p>
+                  <h3 className="font-display text-base leading-tight text-foreground">{card.article}</h3>
+                </div>
+                <span className={cn("shrink-0 rounded-full border px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider", rarityClass[card.rarity])}>
+                  {rarityLabel[card.rarity]}
+                </span>
               </div>
-              <span className={cn("shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider", rarityClass[card.rarity])}>
-                {rarityLabel[card.rarity]}
-              </span>
+              <p className="font-display text-sm leading-snug text-gold line-clamp-2">{card.title}</p>
+              <div><StatusBadge card={card} /></div>
+              <p className={cn("text-xs leading-relaxed text-muted-foreground", compact ? "line-clamp-4" : "line-clamp-[8]")}>
+                {card.summary || card.content}
+              </p>
             </div>
-            <p className="px-4 pt-2 font-display text-sm text-gold">{card.title}</p>
-            <div className="px-4 pt-2"><StatusBadge card={card} /></div>
-            <p className={cn("px-4 pb-4 pt-2 text-sm leading-relaxed text-muted-foreground", compact ? "line-clamp-3" : "line-clamp-6")}>
-              {card.summary || card.content}
-            </p>
           </button>
         </DialogTrigger>
         <DialogContent className="max-h-[85vh] max-w-2xl overflow-y-auto">

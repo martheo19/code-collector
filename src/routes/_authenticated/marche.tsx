@@ -60,7 +60,7 @@ function Marche() {
     <AppShell>
       <h1 className="text-3xl">Marché des joueurs</h1>
       <p className="mt-2 text-sm text-muted-foreground">
-        {listings?.length ?? 0} annonce(s) en cours — solde : {profile?.balance ?? 0} Mariannes.
+        {listings?.length ?? 0} annonce(s) en cours — solde : {profile?.balance ?? 0} Deniers.
       </p>
 
       {isLoading ? (
@@ -100,7 +100,7 @@ function Marche() {
                   }
                 />
                 <p className="px-1 text-xs text-muted-foreground">
-                  Vendu par {mine ? "vous" : listing.seller} · prix {listing.price} Mariannes
+                  Vendu par {mine ? "vous" : listing.seller} · prix {listing.price} Deniers
                 </p>
               </div>
             );

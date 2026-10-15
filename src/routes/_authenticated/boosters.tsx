@@ -62,7 +62,7 @@ function Boosters() {
     <AppShell>
       <h1 className="text-3xl">Boosters</h1>
       <p className="mt-2 text-sm text-muted-foreground">
-        Un booster contient 3 cartes. Plus la rareté est haute, plus la cote est élevée.
+        Un booster contient 5 cartes. Plus la rareté est haute, plus la cote est élevée.
       </p>
 
       <div className="surface-panel mt-6 flex flex-col items-start gap-4 border-gold/40 p-8 md:flex-row md:items-center md:justify-between">
@@ -82,7 +82,7 @@ function Boosters() {
         <div>
           <h2 className="font-display text-2xl">Booster « Journal officiel »</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            {BOOSTER_PRICE} Mariannes — solde actuel : {profile?.balance ?? 0} Mariannes
+            {BOOSTER_PRICE} Deniers — solde actuel : {profile?.balance ?? 0} Deniers
           </p>
         </div>
         <Button

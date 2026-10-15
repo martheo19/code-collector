@@ -4,6 +4,7 @@ import { useState } from "react";
 import { LawCard } from "@/components/LawCard";
 import { MarianneIcon } from "@/components/Marianne";
 import { Button } from "@/components/ui/button";
+import { cardBackUrl } from "@/lib/card-frames";
 import { rarityLabel, type Card, type Rarity } from "@/lib/game";
 
 const halo: Record<Rarity, string> = {
@@ -52,9 +53,12 @@ export function BoosterReveal({ cards, userId, onClose }: { cards: Card[]; userI
         </div>
       ) : (
         <>
-          <h2 className="font-display text-xl">Votre tirage</h2>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 className="font-display text-xl">Votre tirage</h2>
+            {!done && <Button variant="outline" size="sm" onClick={() => setFlipped(cards.map(() => true))}>Tout révéler</Button>}
+          </div>
           {!done && <p className="mt-1 text-sm text-muted-foreground">Cliquez sur chaque carte pour la retourner.</p>}
-          <div className="mt-4 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-4 grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-5">
             {cards.map((card, i) => {
               const shown = flipped[i] ?? false;
               return (
@@ -64,18 +68,18 @@ export function BoosterReveal({ cards, userId, onClose }: { cards: Card[]; userI
                       type="button"
                       aria-label={`Retourner la carte ${i + 1}`}
                       onClick={() => flip(i)}
-                      className="flip-face flip-back halo surface-panel hero-gradient flex cursor-pointer items-center justify-center border-gold/50"
+                      className="flip-face flip-back halo block cursor-pointer overflow-hidden rounded-2xl transition-transform hover:scale-[1.02]"
                       style={{ ["--halo" as string]: halo[card.rarity] }}
                     >
-                      <span className="font-display text-2xl text-gold">JusCartae</span>
+                      <img src={cardBackUrl} alt="Dos de carte JusCartae" className="size-full scale-[1.42] object-cover" draggable={false} />
                     </button>
                     <div className="flip-face flip-front halo" style={{ ["--halo" as string]: shown ? halo[card.rarity] : "transparent" }}>
                       {shown && isNew(card) && (
-                        <p className="mb-2 inline-flex items-center gap-1 rounded-md bg-gold/15 px-2 py-1 text-xs font-semibold text-gold">
+                        <p className="absolute left-1/2 -top-3 z-10 -translate-x-1/2 whitespace-nowrap inline-flex items-center gap-1 rounded-md bg-gold/15 px-2 py-1 text-xs font-semibold text-gold">
                           <Compass className="size-3.5" /> Première découverte mondiale !
                         </p>
                       )}
-                      {shown && <LawCard card={card} />}
+                      <LawCard card={card} />
                     </div>
                   </div>
                 </div>

@@ -66,7 +66,7 @@ function Index() {
 
       <section className="mt-10 grid gap-4 md:grid-cols-3">
         {[
-          { icon: Gift, title: "Boosters", text: "3 cartes tirées au sort, 150 Mariannes le paquet." },
+          { icon: Gift, title: "Boosters", text: "5 cartes tirées au sort, 150 Deniers le paquet." },
           { icon: Landmark, title: "Textes officiels", text: "Articles issus des sources publiques du droit français." },
           { icon: Repeat, title: "Marché entre joueurs", text: "Fixez votre prix, revendez et faites du profit." },
         ].map((f) => (

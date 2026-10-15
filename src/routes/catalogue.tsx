@@ -1,12 +1,12 @@
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { AppShell } from "@/components/AppShell";
 import { LawCard } from "@/components/LawCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { fetchCards, rarityLabel, type Rarity } from "@/lib/game";
+import { fetchCardsPage, PAGE_SIZE, rarityLabel, type Card, type Rarity } from "@/lib/game";
 
 const rarities: (Rarity | "toutes")[] = [
   "toutes",
