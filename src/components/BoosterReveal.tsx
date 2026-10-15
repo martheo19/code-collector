@@ -71,7 +71,7 @@ export function BoosterReveal({ cards, userId, onClose }: { cards: Card[]; userI
                       className="flip-face flip-back halo block cursor-pointer overflow-hidden rounded-2xl transition-transform hover:scale-[1.02]"
                       style={{ ["--halo" as string]: halo[card.rarity] }}
                     >
-                      <img src={cardBackUrl} alt="Dos de carte JusCartae" className="size-full object-cover" draggable={false} />
+                      <img src={cardBackUrl} alt="Dos de carte JusCartae" className="size-full scale-[1.42] object-cover" draggable={false} />
                     </button>
                     <div className="flip-face flip-front halo" style={{ ["--halo" as string]: shown ? halo[card.rarity] : "transparent" }}>
                       {shown && isNew(card) && (

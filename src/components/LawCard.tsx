@@ -53,8 +53,8 @@ export function LawCard({ card, footer, compact = false }: { card: Card; footer?
             className="relative block aspect-[420/570] w-full overflow-hidden rounded-2xl text-left shadow-[var(--shadow-card)]"
             aria-label={`Voir la fiche : ${card.title}`}
           >
-            <img src={frameFor(card.rarity, card.category)} alt="" aria-hidden className={cn("absolute inset-0 size-full object-cover", card.rarity === "peu_commune" && "peu-commune-tint")} />
-            <div className="absolute inset-x-[11%] inset-y-[9%] flex flex-col gap-1.5 overflow-hidden rounded-lg bg-background/80 p-3 backdrop-blur-[2px]">
+            <img src={frameFor(card.rarity, card.category)} alt="" aria-hidden className={cn("absolute inset-0 size-full scale-[1.42] object-cover", card.rarity === "peu_commune" && "peu-commune-tint")} />
+            <div className="absolute inset-x-[9%] top-[8%] bottom-[14%] flex flex-col gap-1.5 overflow-hidden rounded-lg bg-background/70 p-3 backdrop-blur-[2px]">
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
                   <p className="truncate text-[10px] uppercase tracking-[0.16em] text-muted-foreground">{card.source_code}</p>
