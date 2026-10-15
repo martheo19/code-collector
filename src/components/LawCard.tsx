@@ -68,6 +68,7 @@ export function LawCard({ card, footer, compact = false }: { card: Card; footer?
               <p className={cn("text-xs leading-relaxed text-muted-foreground", compact ? "line-clamp-4" : "line-clamp-[8]")}>
                 {card.summary || card.content}
               </p>
+            </div>
           </button>
         </DialogTrigger>
         <DialogContent className="max-h-[85vh] max-w-2xl overflow-y-auto">
