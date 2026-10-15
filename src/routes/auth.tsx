@@ -88,7 +88,7 @@ function AuthPage() {
           {mode === "signin" ? "Connexion" : "Créer un compte"}
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          1 000 Mariannes offerts à l'inscription.
+          1 000 Deniers offerts à l'inscription.
         </p>
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">

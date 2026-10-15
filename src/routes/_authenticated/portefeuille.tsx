@@ -19,7 +19,7 @@ export const Route = createFileRoute("/_authenticated/portefeuille")({
       { title: "Portefeuille — JusCartae" },
       {
         name: "description",
-        content: "Suivez votre solde de Mariannes, l'historique de vos boosters, achats et ventes.",
+        content: "Suivez votre solde de Deniers, l'historique de vos boosters, achats et ventes.",
       },
       { property: "og:title", content: "Portefeuille — JusCartae" },
       { property: "og:description", content: "Solde et historique de vos opérations sur JusCartae." },
@@ -56,7 +56,7 @@ function Portefeuille() {
   const redeemMutation = useMutation({
     mutationFn: (value: string) => redeemPromoCode(value),
     onSuccess: (result) => {
-      toast.success(`Code validé : +${result.credits} Mariannes !`);
+      toast.success(`Code validé : +${result.credits} Deniers !`);
       setCode("");
       queryClient.invalidateQueries({ queryKey: ["profile"] });
       queryClient.invalidateQueries({ queryKey: ["transactions"] });
@@ -73,10 +73,10 @@ function Portefeuille() {
         <p className="text-sm uppercase tracking-[0.2em] text-muted-foreground">Solde</p>
         <p className="mt-2 inline-flex items-center gap-2 font-display text-4xl">
           <MarianneIcon className="size-9" />
-          {profile?.balance ?? 0} Mariannes
+          {profile?.balance ?? 0} Deniers
         </p>
         <p className="mt-3 max-w-md text-sm text-muted-foreground">
-          Les Mariannes s'obtiennent en revendant vos cartes. L'achat de Mariannes en euros
+          Les Deniers s'obtiennent en revendant vos cartes. L'achat de Deniers en euros
           sera ajouté dans une prochaine étape.
         </p>
       </div>
