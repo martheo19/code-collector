@@ -18,6 +18,7 @@ function DiscovererLine({ card }: { card: Card }) {
     </p>
   );
 }
+import { frameFor } from "@/lib/card-frames";
 import { cn } from "@/lib/utils";
 
 const statusLabel: Record<string, string> = {
@@ -52,7 +53,7 @@ export function LawCard({ card, footer, compact = false }: { card: Card; footer?
             className="relative block aspect-[420/570] w-full overflow-hidden rounded-2xl text-left shadow-[var(--shadow-card)]"
             aria-label={`Voir la fiche : ${card.title}`}
           >
-            <img src={frameFor(card.rarity)} alt="" aria-hidden className={cn("absolute inset-0 size-full object-cover", card.rarity === "peu_commune" && "peu-commune-tint")} />
+            <img src={frameFor(card.rarity, card.category)} alt="" aria-hidden className={cn("absolute inset-0 size-full object-cover", card.rarity === "peu_commune" && "peu-commune-tint")} />
             <div className="absolute inset-x-[11%] inset-y-[9%] flex flex-col gap-1.5 overflow-hidden rounded-lg bg-background/80 p-3 backdrop-blur-[2px]">
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
