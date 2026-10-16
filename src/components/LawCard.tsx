@@ -18,7 +18,7 @@ function DiscovererLine({ card }: { card: Card }) {
     </p>
   );
 }
-import { frameFor } from "@/lib/card-frames";
+import { frameFor, inkOf } from "@/lib/card-frames";
 import { cn } from "@/lib/utils";
 
 const statusLabel: Record<string, string> = {
@@ -53,21 +53,25 @@ export function LawCard({ card, footer, compact = false }: { card: Card; footer?
             className="relative block aspect-[420/570] w-full overflow-hidden rounded-2xl text-left shadow-[var(--shadow-card)]"
             aria-label={`Voir la fiche : ${card.title}`}
           >
-            <img src={frameFor(card.rarity, card.category)} alt="" aria-hidden className={cn("absolute inset-0 size-full scale-[1.42] object-cover", card.rarity === "peu_commune" && "peu-commune-tint")} />
-            <div className="absolute inset-x-[9%] top-[8%] bottom-[14%] flex flex-col gap-1.5 overflow-hidden rounded-lg bg-background/70 p-3 backdrop-blur-[2px]">
-              <div className="flex items-start justify-between gap-2">
-                <div className="min-w-0">
-                  <p className="truncate text-[10px] uppercase tracking-[0.16em] text-muted-foreground">{card.source_code}</p>
-                  <h3 className="font-display text-base leading-tight text-foreground">{card.article}</h3>
-                </div>
-                <span className={cn("shrink-0 rounded-full border px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider", rarityClass[card.rarity])}>
-                  {rarityLabel[card.rarity]}
-                </span>
+            <img src={frameFor(card.rarity, card.category)} alt="" aria-hidden className={cn("absolute inset-0 size-full object-cover", card.rarity === "peu_commune" && "peu-commune-tint")} />
+            <div className={cn("card-ink absolute inset-0", inkOf(card.rarity, card.category) === "light" ? "card-ink-light" : "card-ink-dark")}>
+              <div className="absolute left-[17%] right-[27%] top-[16.2%] flex h-[7.6%] items-center [container-type:inline-size]">
+                <h3 className={cn("card-title w-full font-display leading-[1.05] line-clamp-2", card.title.length > 32 ? "text-[6.5cqw]" : card.title.length > 18 ? "text-[8cqw]" : "text-[10cqw]")}>
+                  {card.title}
+                </h3>
               </div>
-              <p className="font-display text-sm leading-snug text-gold line-clamp-2">{card.title}</p>
-              <div><StatusBadge card={card} /></div>
-              <p className={cn("text-xs leading-relaxed text-muted-foreground", compact ? "line-clamp-4" : "line-clamp-[8]")}>
-                {card.summary || card.content}
+              <div className="absolute left-[19%] right-[19%] top-[27.5%] bottom-[23%] flex flex-col gap-[3%] overflow-hidden text-center [container-type:inline-size]">
+                <p className="text-[5.2cqw] font-semibold uppercase tracking-[0.12em] opacity-80">
+                  {card.category === "jurisprudence"
+                    ? [card.authority, card.text_date].filter(Boolean).join(" · ")
+                    : [card.source_code, card.article].filter(Boolean).join(" · ")}
+                </p>
+                <p className={cn("card-body text-[6.2cqw] leading-snug", compact ? "line-clamp-[9]" : "line-clamp-[11]")}>
+                  {card.summary || card.content}
+                </p>
+              </div>
+              <p className="card-title absolute inset-x-[20%] top-[80.5%] h-[7.5%] flex items-center justify-center font-display text-[clamp(10px,4.2cqw,22px)] uppercase tracking-[0.14em] [container-type:inline-size]">
+                <span className="text-[9cqw]">{rarityLabel[card.rarity]}</span>
               </p>
             </div>
           </button>
