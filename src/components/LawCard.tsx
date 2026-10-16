@@ -18,7 +18,7 @@ function DiscovererLine({ card }: { card: Card }) {
     </p>
   );
 }
-import { frameFor } from "@/lib/card-frames";
+import { frameFor, inkOf } from "@/lib/card-frames";
 import { cn } from "@/lib/utils";
 
 const statusLabel: Record<string, string> = {
