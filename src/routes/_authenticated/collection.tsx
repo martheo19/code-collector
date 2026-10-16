@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { ArrowUpDown } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -40,6 +41,16 @@ const circleLabels: Record<string, string> = {
   europe: "Droit européen",
   international: "Droit international",
 };
+type SortKey = "rarete_desc" | "rarete_asc" | "recent" | "ancien" | "az" | "za" | "cote";
+const sortLabels: Record<SortKey, string> = {
+  rarete_desc: "Rareté (la plus rare d'abord)",
+  rarete_asc: "Rareté (la plus commune d'abord)",
+  recent: "Obtention (récentes d'abord)",
+  ancien: "Obtention (anciennes d'abord)",
+  az: "Titre (A → Z)",
+  za: "Titre (Z → A)",
+  cote: "Cote en Deniers (la plus haute)",
+};
 const rarityOrder: Rarity[] = ["commune", "peu_commune", "rare", "epique", "legendaire", "mythique"];
 
 function Collection() {
@@ -49,6 +60,7 @@ function Collection() {
   const [rarity, setRarity] = useState<Rarity | "toutes">("toutes");
   const [circle, setCircle] = useState("toutes");
   const [dupesOnly, setDupesOnly] = useState(false);
+  const [sort, setSort] = useState<SortKey>("rarete_desc");
 
   const { data: owned, isLoading } = useQuery({
     queryKey: ["collection"],
@@ -74,6 +86,19 @@ function Collection() {
       (circle === "toutes" || (o.card.circle ?? "france") === circle) &&
       (!dupesOnly || (counts.get(o.card.id) ?? 0) > 1),
   );
+
+  const rank = (r: Rarity) => rarityOrder.indexOf(r);
+  const sorted = [...visible].sort((a, b) => {
+    switch (sort) {
+      case "rarete_desc": return rank(b.card.rarity) - rank(a.card.rarity) || a.card.title.localeCompare(b.card.title, "fr");
+      case "rarete_asc": return rank(a.card.rarity) - rank(b.card.rarity) || a.card.title.localeCompare(b.card.title, "fr");
+      case "recent": return b.acquired_at.localeCompare(a.acquired_at);
+      case "ancien": return a.acquired_at.localeCompare(b.acquired_at);
+      case "az": return a.card.title.localeCompare(b.card.title, "fr");
+      case "za": return b.card.title.localeCompare(a.card.title, "fr");
+      case "cote": return b.card.base_value - a.card.base_value;
+    }
+  });
 
   const sell = useMutation({
     mutationFn: ({ id, value }: { id: string; value: number }) => createListing(id, value),
@@ -144,6 +169,19 @@ function Collection() {
               <option key={r} value={r}>{rarityLabel[r]}</option>
             ))}
           </select>
+          <label className="inline-flex items-center gap-2 text-sm">
+            <ArrowUpDown className="size-4 text-gold" aria-hidden />
+            <select
+              aria-label="Trier"
+              value={sort}
+              onChange={(e) => setSort(e.target.value as SortKey)}
+              className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+            >
+              {(Object.keys(sortLabels) as SortKey[]).map((k) => (
+                <option key={k} value={k}>{sortLabels[k]}</option>
+              ))}
+            </select>
+          </label>
           <Button size="sm" variant={dupesOnly ? "default" : "outline"} onClick={() => setDupesOnly((v) => !v)}>
             Doublons uniquement
           </Button>
@@ -161,7 +199,7 @@ function Collection() {
         </div>
       ) : (
         <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {visible.map((item) => (
+          {sorted.map((item) => (
             <LawCard
               key={item.id}
               card={item.card}
