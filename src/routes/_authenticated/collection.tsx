@@ -14,9 +14,11 @@ import {
   fetchCardIndex,
   fetchCards,
   fetchCollection,
+  MAX_COLLECTION_CARDS,
   rarityClass,
   rarityLabel,
   type Card,
+  type OwnedCard,
   type Rarity,
 } from "@/lib/game";
 import { cn } from "@/lib/utils";
@@ -27,10 +29,14 @@ export const Route = createFileRoute("/_authenticated/collection")({
       { title: "Ma collection — JusCartae" },
       {
         name: "description",
-        content: "Consultez les cartes juridiques que vous possédez et mettez-les en vente sur le marché.",
+        content:
+          "Consultez les cartes juridiques que vous possédez et mettez-les en vente sur le marché.",
       },
       { property: "og:title", content: "Ma collection — JusCartae" },
-      { property: "og:description", content: "Vos cartes de droit français et leur mise en vente." },
+      {
+        property: "og:description",
+        content: "Vos cartes de droit français et leur mise en vente.",
+      },
     ],
   }),
   component: Collection,
@@ -51,7 +57,14 @@ const sortLabels: Record<SortKey, string> = {
   za: "Titre (Z → A)",
   cote: "Cote en Deniers (la plus haute)",
 };
-const rarityOrder: Rarity[] = ["commune", "peu_commune", "rare", "epique", "legendaire", "mythique"];
+const rarityOrder: Rarity[] = [
+  "commune",
+  "peu_commune",
+  "rare",
+  "epique",
+  "legendaire",
+  "mythique",
+];
 
 function Collection() {
   const queryClient = useQueryClient();
@@ -66,10 +79,20 @@ function Collection() {
     queryKey: ["collection"],
     queryFn: fetchCollection,
   });
-  const { data: allCards } = useQuery({ queryKey: ["card-index"], queryFn: fetchCardIndex, staleTime: 600_000 });
+  const { data: allCards } = useQuery({
+    queryKey: ["card-index"],
+    queryFn: fetchCardIndex,
+    staleTime: 600_000,
+  });
 
   const counts = new Map<string, number>();
   for (const o of owned ?? []) counts.set(o.card.id, (counts.get(o.card.id) ?? 0) + 1);
+  const grouped = new Map<string, { item: OwnedCard; count: number }>();
+  for (const item of owned ?? []) {
+    const existing = grouped.get(item.card.id);
+    if (existing) existing.count += 1;
+    else grouped.set(item.card.id, { item, count: 1 });
+  }
   const total = allCards?.length ?? 0;
   const unique = counts.size;
   const pct = total ? Math.round((unique / total) * 100) : 0;
@@ -80,23 +103,36 @@ function Collection() {
     return { have, all: all.length };
   };
 
-  const visible = (owned ?? []).filter(
-    (o) =>
+  const visible = [...grouped.values()].filter(
+    ({ item: o, count }) =>
       (rarity === "toutes" || o.card.rarity === rarity) &&
       (circle === "toutes" || (o.card.circle ?? "france") === circle) &&
-      (!dupesOnly || (counts.get(o.card.id) ?? 0) > 1),
+      (!dupesOnly || count > 1),
   );
 
   const rank = (r: Rarity) => rarityOrder.indexOf(r);
-  const sorted = [...visible].sort((a, b) => {
+  const sorted = [...visible].sort(({ item: a }, { item: b }) => {
     switch (sort) {
-      case "rarete_desc": return rank(b.card.rarity) - rank(a.card.rarity) || a.card.title.localeCompare(b.card.title, "fr");
-      case "rarete_asc": return rank(a.card.rarity) - rank(b.card.rarity) || a.card.title.localeCompare(b.card.title, "fr");
-      case "recent": return b.acquired_at.localeCompare(a.acquired_at);
-      case "ancien": return a.acquired_at.localeCompare(b.acquired_at);
-      case "az": return a.card.title.localeCompare(b.card.title, "fr");
-      case "za": return b.card.title.localeCompare(a.card.title, "fr");
-      case "cote": return b.card.base_value - a.card.base_value;
+      case "rarete_desc":
+        return (
+          rank(b.card.rarity) - rank(a.card.rarity) ||
+          a.card.title.localeCompare(b.card.title, "fr")
+        );
+      case "rarete_asc":
+        return (
+          rank(a.card.rarity) - rank(b.card.rarity) ||
+          a.card.title.localeCompare(b.card.title, "fr")
+        );
+      case "recent":
+        return b.acquired_at.localeCompare(a.acquired_at);
+      case "ancien":
+        return a.acquired_at.localeCompare(b.acquired_at);
+      case "az":
+        return a.card.title.localeCompare(b.card.title, "fr");
+      case "za":
+        return b.card.title.localeCompare(a.card.title, "fr");
+      case "cote":
+        return b.card.base_value - a.card.base_value;
     }
   });
 
@@ -116,7 +152,8 @@ function Collection() {
     <AppShell>
       <h1 className="text-3xl">Ma collection</h1>
       <p className="mt-2 text-sm text-muted-foreground">
-        {owned?.length ?? 0} carte(s) en votre possession.
+        {owned?.length ?? 0} / {MAX_COLLECTION_CARDS.toLocaleString("fr-FR")} cartes en votre
+        possession.
       </p>
 
       {total > 0 && (
@@ -132,9 +169,14 @@ function Collection() {
             {Object.entries(circleLabels).map(([k, label]) => {
               const s = statFor((c) => (c.circle ?? "france") === k);
               return (
-                <div key={k} className="flex justify-between rounded border border-border px-3 py-2">
+                <div
+                  key={k}
+                  className="flex justify-between rounded border border-border px-3 py-2"
+                >
                   <span className="text-muted-foreground">{label}</span>
-                  <span>{s.have} / {s.all}</span>
+                  <span>
+                    {s.have} / {s.all}
+                  </span>
                 </div>
               );
             })}
@@ -154,9 +196,22 @@ function Collection() {
 
       {(owned?.length ?? 0) > 0 && (
         <div className="mt-6 flex flex-wrap gap-2">
-          <Button size="sm" variant={circle === "toutes" ? "default" : "outline"} onClick={() => setCircle("toutes")}>Tous</Button>
+          <Button
+            size="sm"
+            variant={circle === "toutes" ? "default" : "outline"}
+            onClick={() => setCircle("toutes")}
+          >
+            Tous
+          </Button>
           {Object.entries(circleLabels).map(([k, label]) => (
-            <Button key={k} size="sm" variant={circle === k ? "default" : "outline"} onClick={() => setCircle(k)}>{label}</Button>
+            <Button
+              key={k}
+              size="sm"
+              variant={circle === k ? "default" : "outline"}
+              onClick={() => setCircle(k)}
+            >
+              {label}
+            </Button>
           ))}
           <select
             aria-label="Rareté"
@@ -166,7 +221,9 @@ function Collection() {
           >
             <option value="toutes">Toutes raretés</option>
             {rarityOrder.map((r) => (
-              <option key={r} value={r}>{rarityLabel[r]}</option>
+              <option key={r} value={r}>
+                {rarityLabel[r]}
+              </option>
             ))}
           </select>
           <label className="inline-flex items-center gap-2 text-sm">
@@ -178,11 +235,17 @@ function Collection() {
               className="h-9 rounded-md border border-input bg-background px-3 text-sm"
             >
               {(Object.keys(sortLabels) as SortKey[]).map((k) => (
-                <option key={k} value={k}>{sortLabels[k]}</option>
+                <option key={k} value={k}>
+                  {sortLabels[k]}
+                </option>
               ))}
             </select>
           </label>
-          <Button size="sm" variant={dupesOnly ? "default" : "outline"} onClick={() => setDupesOnly((v) => !v)}>
+          <Button
+            size="sm"
+            variant={dupesOnly ? "default" : "outline"}
+            onClick={() => setDupesOnly((v) => !v)}
+          >
             Doublons uniquement
           </Button>
         </div>
@@ -199,11 +262,12 @@ function Collection() {
         </div>
       ) : (
         <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {sorted.map((item) => (
+          {sorted.map(({ item, count }) => (
             <LawCard
               key={item.id}
               card={item.card}
               compact
+              ownedCount={count}
               footer={
                 sellingId === item.id ? (
                   <div className="flex items-center gap-2">

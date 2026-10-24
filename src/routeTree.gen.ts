@@ -15,6 +15,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as CatalogueRouteImport } from './routes/catalogue'
 import { Route as AuthenticatedBoostersRouteImport } from './routes/_authenticated/boosters'
 import { Route as AuthenticatedCollectionRouteImport } from './routes/_authenticated/collection'
+import { Route as AuthenticatedGodModeRouteImport } from './routes/_authenticated/god-mode'
 import { Route as AuthenticatedMarcheRouteImport } from './routes/_authenticated/marche'
 import { Route as AuthenticatedPortefeuilleRouteImport } from './routes/_authenticated/portefeuille'
 
@@ -47,6 +48,11 @@ const AuthenticatedCollectionRoute = AuthenticatedCollectionRouteImport.update({
   path: '/collection',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedGodModeRoute = AuthenticatedGodModeRouteImport.update({
+  id: '/god-mode',
+  path: '/god-mode',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedMarcheRoute = AuthenticatedMarcheRouteImport.update({
   id: '/marche',
   path: '/marche',
@@ -65,6 +71,7 @@ export interface FileRoutesByFullPath {
   '/catalogue': typeof CatalogueRoute
   '/boosters': typeof AuthenticatedBoostersRoute
   '/collection': typeof AuthenticatedCollectionRoute
+  '/god-mode': typeof AuthenticatedGodModeRoute
   '/marche': typeof AuthenticatedMarcheRoute
   '/portefeuille': typeof AuthenticatedPortefeuilleRoute
 }
@@ -74,6 +81,7 @@ export interface FileRoutesByTo {
   '/catalogue': typeof CatalogueRoute
   '/boosters': typeof AuthenticatedBoostersRoute
   '/collection': typeof AuthenticatedCollectionRoute
+  '/god-mode': typeof AuthenticatedGodModeRoute
   '/marche': typeof AuthenticatedMarcheRoute
   '/portefeuille': typeof AuthenticatedPortefeuilleRoute
 }
@@ -85,6 +93,7 @@ export interface FileRoutesById {
   '/catalogue': typeof CatalogueRoute
   '/_authenticated/boosters': typeof AuthenticatedBoostersRoute
   '/_authenticated/collection': typeof AuthenticatedCollectionRoute
+  '/_authenticated/god-mode': typeof AuthenticatedGodModeRoute
   '/_authenticated/marche': typeof AuthenticatedMarcheRoute
   '/_authenticated/portefeuille': typeof AuthenticatedPortefeuilleRoute
 }
@@ -96,6 +105,7 @@ export interface FileRouteTypes {
     | '/catalogue'
     | '/boosters'
     | '/collection'
+    | '/god-mode'
     | '/marche'
     | '/portefeuille'
   fileRoutesByTo: FileRoutesByTo
@@ -105,6 +115,7 @@ export interface FileRouteTypes {
     | '/catalogue'
     | '/boosters'
     | '/collection'
+    | '/god-mode'
     | '/marche'
     | '/portefeuille'
   id:
@@ -115,6 +126,7 @@ export interface FileRouteTypes {
     | '/catalogue'
     | '/_authenticated/boosters'
     | '/_authenticated/collection'
+    | '/_authenticated/god-mode'
     | '/_authenticated/marche'
     | '/_authenticated/portefeuille'
   fileRoutesById: FileRoutesById
@@ -170,6 +182,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCollectionRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/god-mode': {
+      id: '/_authenticated/god-mode'
+      path: '/god-mode'
+      fullPath: '/god-mode'
+      preLoaderRoute: typeof AuthenticatedGodModeRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/marche': {
       id: '/_authenticated/marche'
       path: '/marche'
@@ -190,6 +209,7 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedBoostersRoute: typeof AuthenticatedBoostersRoute
   AuthenticatedCollectionRoute: typeof AuthenticatedCollectionRoute
+  AuthenticatedGodModeRoute: typeof AuthenticatedGodModeRoute
   AuthenticatedMarcheRoute: typeof AuthenticatedMarcheRoute
   AuthenticatedPortefeuilleRoute: typeof AuthenticatedPortefeuilleRoute
 }
@@ -197,6 +217,7 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedBoostersRoute: AuthenticatedBoostersRoute,
   AuthenticatedCollectionRoute: AuthenticatedCollectionRoute,
+  AuthenticatedGodModeRoute: AuthenticatedGodModeRoute,
   AuthenticatedMarcheRoute: AuthenticatedMarcheRoute,
   AuthenticatedPortefeuilleRoute: AuthenticatedPortefeuilleRoute,
 }

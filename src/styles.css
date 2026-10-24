@@ -103,10 +103,16 @@
   --rarity-legendaire: oklch(0.82 0.15 85);
   --rarity-mythique: oklch(0.68 0.2 25);
 
-  --gradient-hero: linear-gradient(140deg, oklch(0.18 0.048 266) 0%, oklch(0.26 0.075 264) 50%, oklch(0.22 0.09 20) 130%);
+  --gradient-hero: linear-gradient(
+    140deg,
+    oklch(0.18 0.048 266) 0%,
+    oklch(0.26 0.075 264) 50%,
+    oklch(0.22 0.09 20) 130%
+  );
   --gradient-gold: linear-gradient(120deg, oklch(0.88 0.11 92), oklch(0.72 0.13 72));
   --shadow-card: 0 18px 40px -22px oklch(0.08 0.05 266 / 0.9);
-  --shadow-glow: 0 0 0 1px oklch(0.62 0.16 264 / 0.35), 0 20px 50px -25px oklch(0.55 0.19 264 / 0.8);
+  --shadow-glow:
+    0 0 0 1px oklch(0.62 0.16 264 / 0.35), 0 20px 50px -25px oklch(0.55 0.19 264 / 0.8);
 
   --chart-1: var(--tricolore-blue);
   --chart-2: var(--gold);
@@ -165,30 +171,555 @@
 }
 
 @utility tricolore-rule {
-  background: linear-gradient(90deg, var(--tricolore-blue) 0 33.3%, oklch(0.98 0 0) 33.3% 66.6%, var(--tricolore-red) 66.6% 100%);
+  background: linear-gradient(
+    90deg,
+    var(--tricolore-blue) 0 33.3%,
+    oklch(0.98 0 0) 33.3% 66.6%,
+    var(--tricolore-red) 66.6% 100%
+  );
 }
 
-/* Animation d'ouverture des boosters */
-.flip-card { perspective: 1200px; }
-.flip-inner { position: relative; transform-style: preserve-3d; transition: transform 0.8s cubic-bezier(.2,.8,.2,1); }
-.flip-card[data-revealed="true"] .flip-inner { transform: rotateY(180deg); }
-.flip-face { backface-visibility: hidden; -webkit-backface-visibility: hidden; }
-.flip-back { position: absolute; inset: 0; width: 100%; aspect-ratio: 420 / 570; height: auto; }
-.flip-front { transform: rotateY(180deg); }
-.halo { box-shadow: 0 0 32px 4px var(--halo, transparent); border-radius: 0.75rem; }
-@keyframes pack-burst { 0% { transform: scale(1); opacity: 1; filter: brightness(1); } 60% { transform: scale(1.12) rotate(-2deg); filter: brightness(1.8); } 100% { transform: scale(0.6); opacity: 0; filter: brightness(3); } }
-.pack-burst { animation: pack-burst 0.7s ease-in forwards; }
-@keyframes rare-shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
-.rare-shake { animation: rare-shake 0.35s ease-in-out 0.8s 2; }
-
-.peu-commune-tint { filter: sepia(0.35) hue-rotate(95deg) saturate(1.3); }
-
-/* Encre imprimée directement sur les gabarits de cartes */
-:root {
-  --card-ink-dark: oklch(0.24 0.04 260);
-  --card-ink-light: oklch(0.97 0.01 90);
+.announcement-marquee {
+  container-type: inline-size;
 }
-.card-ink-dark { color: var(--card-ink-dark); text-shadow: 0 1px 0 oklch(1 0 0 / 0.35); }
-.card-ink-light { color: var(--card-ink-light); text-shadow: 0 1px 2px oklch(0 0 0 / 0.55); }
-.card-ink .card-title { font-weight: 600; text-align: center; }
-.card-ink .card-body { font-family: var(--font-sans, inherit); }
+
+.announcement-marquee-track {
+  display: flex;
+  width: max-content;
+  align-items: center;
+  animation: announcement-scroll 24s linear infinite;
+  will-change: transform;
+}
+
+.announcement-marquee-track > span {
+  display: flex;
+  min-width: 100cqw;
+  box-sizing: border-box;
+  justify-content: center;
+  flex: none;
+  padding-inline: 4rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.announcement-marquee:hover .announcement-marquee-track,
+.announcement-marquee:focus-within .announcement-marquee-track {
+  animation-play-state: paused;
+}
+
+@keyframes announcement-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .announcement-marquee-track {
+    animation: none;
+  }
+
+  .announcement-marquee-track > span {
+    min-width: 100cqw;
+  }
+
+  .announcement-marquee-track > span[aria-hidden="true"] {
+    display: none;
+  }
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* Booster opening and dealer-style card distribution */
+.booster-opening-stage {
+  position: relative;
+  isolation: isolate;
+}
+.booster-table-glow {
+  position: absolute;
+  z-index: -1;
+  bottom: 2.5rem;
+  width: min(78vw, 30rem);
+  height: 7rem;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, oklch(0.68 0.13 82 / 0.18), transparent 70%);
+  filter: blur(12px);
+}
+.booster-pack {
+  position: relative;
+  z-index: 1;
+  transform-origin: center bottom;
+  transition:
+    transform 220ms ease,
+    box-shadow 220ms ease;
+}
+.booster-pack:not(:disabled):hover {
+  transform: translateY(-5px) rotate(-1deg);
+  box-shadow: 0 20px 45px -18px oklch(0.82 0.13 88 / 0.55);
+}
+.pack-opening {
+  animation: pack-open 850ms cubic-bezier(0.2, 0.75, 0.25, 1) both;
+}
+@keyframes pack-open {
+  0% {
+    transform: rotate(0) scale(1);
+    opacity: 1;
+    filter: brightness(1);
+  }
+  14% {
+    transform: rotate(-5deg) scale(1.04);
+  }
+  28% {
+    transform: rotate(5deg) scale(1.06);
+  }
+  42% {
+    transform: rotate(-4deg) scale(1.08);
+    filter: brightness(1.35);
+  }
+  62% {
+    transform: translateY(-18px) rotate(3deg) scale(1.12);
+    filter: brightness(1.8);
+  }
+  100% {
+    transform: translateY(24px) rotate(8deg) scale(0.72);
+    opacity: 0;
+    filter: brightness(2.4);
+  }
+}
+.flip-card {
+  perspective: 1200px;
+  aspect-ratio: 420 / 570;
+  min-width: 0;
+}
+.deal-card {
+  transform-origin: center center;
+}
+.booster-reveal-section[data-phase="dealing"],
+.booster-reveal-section[data-phase="cards"] {
+  padding-top: clamp(3rem, 11vh, 8rem);
+  padding-bottom: max(30vh, 12rem);
+}
+.booster-deal-table.is-dealing .deal-card {
+  animation: card-deal 760ms cubic-bezier(0.18, 0.72, 0.24, 1) both;
+}
+@keyframes card-deal {
+  0% {
+    opacity: 0;
+    transform: translate(0, 3rem) rotate(8deg) scale(0.58);
+  }
+  58% {
+    opacity: 1;
+    transform: translate(0, -0.65rem) rotate(-3deg) scale(1.04);
+  }
+  78% {
+    transform: translate(0, 0.2rem) rotate(1deg) scale(0.99);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(0, 0) rotate(0) scale(1);
+  }
+}
+.flip-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  aspect-ratio: 420 / 570;
+  transform-style: preserve-3d;
+  transition: transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.flip-card[data-revealed="true"] .flip-inner {
+  transform: rotateY(180deg);
+}
+.flip-face {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.flip-back {
+  display: block;
+  cursor: pointer;
+  overflow: hidden;
+  border-radius: 0.75rem;
+}
+.flip-front {
+  transform: rotateY(180deg);
+}
+.flip-front > .law-card {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+.flip-front .law-card-trigger {
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+  aspect-ratio: auto;
+}
+.halo {
+  box-shadow: 0 0 32px 4px var(--halo, transparent);
+  border-radius: 0.75rem;
+}
+/* CSS-only legal card design and rarity accents. */
+.law-card[data-rarity="commune"] {
+  --law-rarity: var(--rarity-commune);
+}
+.law-card[data-rarity="peu_commune"] {
+  --law-rarity: var(--rarity-peu-commune);
+}
+.law-card[data-rarity="rare"] {
+  --law-rarity: var(--rarity-rare);
+}
+.law-card[data-rarity="epique"] {
+  --law-rarity: var(--rarity-epique);
+}
+.law-card[data-rarity="legendaire"] {
+  --law-rarity: var(--rarity-legendaire);
+}
+.law-card[data-rarity="mythique"] {
+  --law-rarity: var(--rarity-mythique);
+}
+
+.law-card-trigger {
+  isolation: isolate;
+  container-type: inline-size;
+  gap: 3%;
+  border: 1px solid color-mix(in oklab, var(--law-rarity) 70%, #c9bea4);
+  padding: 5%;
+  background:
+    radial-gradient(
+      ellipse at 100% 0%,
+      color-mix(in oklab, var(--law-rarity) 12%, transparent),
+      transparent 42%
+    ),
+    linear-gradient(155deg, #fffdf7 0%, #f5f0e3 58%, #ebe3d1 100%);
+  color: #252b37;
+  box-shadow:
+    inset 0 0 0 3px #fffdf780,
+    inset 0 0 0 4px color-mix(in oklab, var(--law-rarity) 34%, transparent),
+    0 12px 26px -16px #080d1d;
+  transition:
+    box-shadow 180ms ease,
+    transform 180ms ease;
+}
+
+.law-card-trigger:hover {
+  box-shadow:
+    inset 0 0 0 3px #fffdf780,
+    inset 0 0 0 4px var(--law-rarity),
+    0 16px 34px -16px #080d1d;
+}
+
+.law-card-trigger::before {
+  position: absolute;
+  z-index: 1;
+  inset: 0 0 auto;
+  height: 1.4%;
+  background: var(--law-rarity);
+  content: "";
+  pointer-events: none;
+}
+
+.law-card-topline,
+.law-card-category,
+.law-card-content,
+.law-card-bottomline {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  min-width: 0;
+}
+
+.law-card-topline,
+.law-card-category,
+.law-card-bottomline {
+  flex-shrink: 0;
+}
+
+.law-card-topline {
+  align-items: center;
+  justify-content: space-between;
+  gap: 2%;
+  min-height: 8%;
+  border-bottom: 1px solid color-mix(in oklab, var(--law-rarity) 32%, #c9bea4);
+  padding-bottom: 2%;
+}
+
+.law-card-brand {
+  overflow: hidden;
+  color: #687080;
+  font-family: var(--font-sans);
+  font-size: clamp(7px, 2.8cqi, 10px);
+  font-weight: 800;
+  letter-spacing: 0.13em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.law-card-rarity {
+  flex: none;
+  border: 1px solid color-mix(in oklab, var(--law-rarity) 60%, transparent);
+  border-radius: 999px;
+  padding: 0.2em 0.65em;
+  background: color-mix(in oklab, var(--law-rarity) 13%, white);
+  color: #343947;
+  font-size: clamp(8px, 3cqi, 11px);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.law-card-category {
+  align-items: center;
+  align-self: flex-start;
+  max-width: 100%;
+  min-height: 7%;
+  border-left: 2px solid var(--law-rarity);
+  padding-left: 0.6em;
+  color: #657084;
+  font-size: clamp(8px, 3.1cqi, 11px);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.law-card-content {
+  flex: 1;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 3%;
+  min-height: 0;
+  overflow: hidden;
+  border-top: 1px solid #c9bea480;
+  border-bottom: 1px solid #c9bea480;
+  padding: 4% 1%;
+}
+
+.law-card-reference {
+  display: -webkit-box;
+  overflow: hidden;
+  color: color-mix(in oklab, var(--law-rarity) 75%, #343947);
+  font-size: clamp(8px, 3.1cqi, 11px);
+  font-weight: 800;
+  letter-spacing: 0.045em;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+  text-transform: uppercase;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.law-card-title {
+  display: -webkit-box;
+  overflow: hidden;
+  color: #202738;
+  font-family: var(--font-display);
+  font-size: clamp(13px, 6.5cqi, 23px);
+  font-weight: 700;
+  line-height: 1.13;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.law-card-summary {
+  display: -webkit-box;
+  overflow: hidden;
+  color: #4c5566;
+  font-size: clamp(11px, 4.4cqi, 15px);
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 5;
+}
+
+.law-card-summary-compact {
+  -webkit-line-clamp: 4;
+}
+
+.law-card-bottomline {
+  align-items: center;
+  justify-content: space-between;
+  gap: 2%;
+  min-height: 8%;
+  color: #687080;
+  font-size: clamp(7px, 2.7cqi, 9px);
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  line-height: 1.25;
+  text-transform: uppercase;
+}
+
+.law-card-bottomline > span:first-child,
+.law-card-bottomline > span:last-child {
+  max-width: 42%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.law-card-seal {
+  display: grid;
+  flex: none;
+  width: 2em;
+  aspect-ratio: 1;
+  place-items: center;
+  border: 1px solid color-mix(in oklab, var(--law-rarity) 65%, #c9bea4);
+  border-radius: 50%;
+  color: color-mix(in oklab, var(--law-rarity) 75%, #343947);
+  font-family: var(--font-display);
+  font-size: 1.2em;
+}
+
+.law-card-trigger::after {
+  position: absolute;
+  z-index: 20;
+  inset: 0;
+  border-radius: inherit;
+  content: "";
+  opacity: 0;
+  pointer-events: none;
+}
+
+.law-card[data-revealed="true"][data-rarity="rare"] .law-card-trigger::after {
+  background: radial-gradient(
+    circle,
+    color-mix(in oklab, var(--rarity-rare) 48%, transparent),
+    transparent 70%
+  );
+  animation: law-halo-fade 1.2s ease forwards;
+}
+
+.law-card[data-revealed="true"][data-rarity="epique"] .law-card-trigger::after {
+  background: radial-gradient(
+    circle,
+    color-mix(in oklab, var(--rarity-epique) 55%, transparent),
+    transparent 70%
+  );
+  animation: law-halo-fade 1.5s ease forwards;
+}
+
+.law-card[data-revealed="true"][data-rarity="epique"] .law-card-trigger {
+  animation: law-epic-pulse 0.9s ease;
+}
+
+.law-card[data-revealed="true"][data-rarity="legendaire"] .law-card-trigger::after {
+  background: linear-gradient(
+    105deg,
+    transparent 40%,
+    oklch(0.92 0.16 92 / 0.7) 50%,
+    transparent 60%
+  );
+  background-size: 250% 100%;
+  animation: law-gold-sweep 1.4s ease forwards;
+}
+
+.law-card[data-revealed="true"][data-rarity="mythique"] .law-card-trigger::after {
+  background:
+    radial-gradient(circle at 50% 40%, oklch(0.62 0.22 25 / 0.55), transparent 70%),
+    linear-gradient(105deg, transparent 40%, oklch(0.78 0.2 25 / 0.55) 50%, transparent 60%);
+  background-size:
+    100% 100%,
+    250% 100%;
+  animation: law-mythic-flash 1.8s ease forwards;
+}
+
+.law-card[data-revealed="true"][data-rarity="mythique"] {
+  animation: law-mythic-shake 1.5s ease;
+}
+
+@keyframes law-halo-fade {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+}
+
+@keyframes law-epic-pulse {
+  0%,
+  100% {
+    filter: brightness(1);
+  }
+  40% {
+    filter: brightness(1.35) saturate(1.3);
+  }
+}
+
+@keyframes law-gold-sweep {
+  0% {
+    background-position: 120% 0;
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    background-position: -30% 0;
+    opacity: 0;
+  }
+}
+
+@keyframes law-mythic-flash {
+  0% {
+    background-position:
+      0 0,
+      120% 0;
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  100% {
+    background-position:
+      0 0,
+      -30% 0;
+    opacity: 0;
+  }
+}
+
+@keyframes law-mythic-shake {
+  0%,
+  100% {
+    translate: 0;
+  }
+  30%,
+  60% {
+    translate: 0;
+  }
+  40% {
+    translate: 3px;
+  }
+  50% {
+    translate: -3px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pack-opening,
+  .booster-deal-table.is-dealing .deal-card {
+    animation: none;
+  }
+  .law-card[data-revealed="true"] .law-card-trigger,
+  .law-card[data-revealed="true"] .law-card-trigger::after,
+  .law-card[data-revealed="true"][data-rarity="mythique"] {
+    animation: none;
+  }
+}

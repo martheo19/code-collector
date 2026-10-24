@@ -1,12 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 
-export type Rarity =
-  | "commune"
-  | "peu_commune"
-  | "rare"
-  | "epique"
-  | "legendaire"
-  | "mythique";
+export type Rarity = "commune" | "peu_commune" | "rare" | "epique" | "legendaire" | "mythique";
 
 export type Card = {
   id: string;
@@ -52,12 +46,15 @@ export function officialUrl(card: Card): string {
   if (card.source_url) return card.source_url;
   const q = encodeURIComponent(`${card.source_code} ${card.article} ${card.title}`.trim());
   if (card.circle === "europe") {
-    if (card.authority?.includes("droits de l'homme")) return `https://hudoc.echr.coe.int/fre#{"fulltext":["${encodeURIComponent(card.title)}"]}`;
+    if (card.authority?.includes("droits de l'homme"))
+      return `https://hudoc.echr.coe.int/fre#{"fulltext":["${encodeURIComponent(card.title)}"]}`;
     return `https://eur-lex.europa.eu/search.html?scope=EURLEX&type=quick&lang=fr&text=${q}`;
   }
   if (card.circle === "international") {
-    if (card.authority?.includes("pénale")) return `https://www.icc-cpi.int/fr/search?search=${encodeURIComponent(card.title)}`;
-    if (card.authority?.includes("justice")) return `https://www.icj-cij.org/fr/rechercher?search_api_fulltext=${encodeURIComponent(card.title)}`;
+    if (card.authority?.includes("pénale"))
+      return `https://www.icc-cpi.int/fr/search?search=${encodeURIComponent(card.title)}`;
+    if (card.authority?.includes("justice"))
+      return `https://www.icj-cij.org/fr/rechercher?search_api_fulltext=${encodeURIComponent(card.title)}`;
     return `https://www.un.org/fr/search?q=${encodeURIComponent(card.title)}`;
   }
   return `https://www.legifrance.gouv.fr/search/all?tab_selection=all&searchField=ALL&query=${q}`;
@@ -65,9 +62,16 @@ export function officialUrl(card: Card): string {
 
 export type Discoverer = { username: string; at: string } | null;
 
-export async function fetchDiscoverer(card: Card & { first_discovered_by?: string | null; first_discovered_at?: string | null }): Promise<Discoverer> {
+export async function fetchDiscoverer(
+  card: Card & { first_discovered_by?: string | null; first_discovered_at?: string | null },
+): Promise<Discoverer> {
   if (!card.first_discovered_by || !card.first_discovered_at) return null;
-  const { data } = await supabase.from("profiles").select("username").eq("id", card.first_discovered_by).maybeSingle();
+  const { data, error } = await supabase
+    .from("public_profiles")
+    .select("username")
+    .eq("id", card.first_discovered_by)
+    .maybeSingle();
+  if (error) throw error;
   return { username: data?.username ?? "joueur", at: card.first_discovered_at };
 }
 
@@ -85,7 +89,11 @@ export async function fetchCards(limit = 60): Promise<Card[]> {
 export async function fetchCardIndex(): Promise<Pick<Card, "id" | "rarity" | "circle">[]> {
   const out: Pick<Card, "id" | "rarity" | "circle">[] = [];
   for (let from = 0; ; from += 1000) {
-    const { data, error } = await supabase.from("cards").select("id, rarity, circle").order("id").range(from, from + 999);
+    const { data, error } = await supabase
+      .from("cards")
+      .select("id, rarity, circle")
+      .order("id")
+      .range(from, from + 999);
     if (error) throw error;
     out.push(...((data ?? []) as Pick<Card, "id" | "rarity" | "circle">[]));
     if (!data || data.length < 1000) return out;
@@ -93,10 +101,19 @@ export async function fetchCardIndex(): Promise<Pick<Card, "id" | "rarity" | "ci
 }
 
 export const PAGE_SIZE = 48;
-export type CardFilters = { search: string; rarity: string; circle: string; status: string; sort: string };
+export type CardFilters = {
+  search: string;
+  rarity: string;
+  circle: string;
+  status: string;
+  sort: string;
+};
 
 /** Page du catalogue filtrée et triée côté base. */
-export async function fetchCardsPage(f: CardFilters, page: number): Promise<{ cards: Card[]; total: number }> {
+export async function fetchCardsPage(
+  f: CardFilters,
+  page: number,
+): Promise<{ cards: Card[]; total: number }> {
   let q = supabase.from("cards").select("*", { count: "exact" });
   if (f.rarity !== "toutes") q = q.eq("rarity", f.rarity as Rarity);
   if (f.circle !== "toutes") q = q.eq("circle", f.circle);
@@ -105,9 +122,12 @@ export async function fetchCardsPage(f: CardFilters, page: number): Promise<{ ca
   if (s) q = q.or(`title.ilike.%${s}%,article.ilike.%${s}%,source_code.ilike.%${s}%`);
   if (f.sort === "cote_asc") q = q.order("base_value", { ascending: true });
   else if (f.sort === "date_asc") q = q.order("text_date", { ascending: true, nullsFirst: false });
-  else if (f.sort === "date_desc") q = q.order("text_date", { ascending: false, nullsFirst: false });
+  else if (f.sort === "date_desc")
+    q = q.order("text_date", { ascending: false, nullsFirst: false });
   else q = q.order("base_value", { ascending: false });
-  const { data, error, count } = await q.order("id").range(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE - 1);
+  const { data, error, count } = await q
+    .order("id")
+    .range(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE - 1);
   if (error) throw error;
   return { cards: (data ?? []) as Card[], total: count ?? 0 };
 }
@@ -125,21 +145,33 @@ export async function fetchProfile() {
 }
 
 export type OwnedCard = { id: string; acquired_at: string; card: Card };
+export const MAX_COLLECTION_CARDS = 20_000;
 
 export async function fetchCollection(): Promise<OwnedCard[]> {
   const { data: auth } = await supabase.auth.getUser();
   if (!auth.user) return [];
-  const { data, error } = await supabase
-    .from("user_cards")
-    .select("id, acquired_at, cards(*)")
-    .eq("user_id", auth.user.id)
-    .order("acquired_at", { ascending: false });
-  if (error) throw error;
-  return (data ?? []).map((row: Record<string, unknown>) => ({
-    id: row["id"] as string,
-    acquired_at: row["acquired_at"] as string,
-    card: row["cards"] as Card,
-  }));
+  const owned: OwnedCard[] = [];
+  for (let from = 0; from < MAX_COLLECTION_CARDS; from += 1000) {
+    const to = Math.min(from + 999, MAX_COLLECTION_CARDS - 1);
+    const { data, error } = await supabase
+      .from("user_cards")
+      .select("id, acquired_at, cards(*)")
+      .eq("user_id", auth.user.id)
+      .is("revoked_at", null)
+      .order("acquired_at", { ascending: false })
+      .range(from, to);
+    if (error) throw error;
+    const rows = data ?? [];
+    owned.push(
+      ...rows.map((row: Record<string, unknown>) => ({
+        id: row["id"] as string,
+        acquired_at: row["acquired_at"] as string,
+        card: row["cards"] as Card,
+      })),
+    );
+    if (rows.length < to - from + 1) break;
+  }
+  return owned;
 }
 
 export type Listing = {
@@ -162,10 +194,11 @@ export async function fetchListings(): Promise<Listing[]> {
   const sellerIds = [...new Set(rows.map((r) => r["seller_id"] as string))];
   const names = new Map<string, string>();
   if (sellerIds.length > 0) {
-    const { data: profiles } = await supabase
-      .from("profiles")
+    const { data: profiles, error } = await supabase
+      .from("public_profiles")
       .select("id, username")
       .in("id", sellerIds);
+    if (error) throw error;
     for (const p of profiles ?? []) names.set(p.id, p.username);
   }
   return rows.map((row) => ({
@@ -198,13 +231,15 @@ async function drawToCards(ids: string[]): Promise<Card[]> {
   return ids.map((id) => (cards ?? []).find((c) => c.id === id)).filter(Boolean) as Card[];
 }
 
-export async function openBooster(): Promise<Card[]> {
-  const { data, error } = await supabase.rpc("open_booster");
+export async function openBooster(quantity = 1): Promise<Card[]> {
+  const { data, error } = await supabase.rpc("open_booster", { p_quantity: quantity });
   if (error) throw error;
   return drawToCards((data ?? []).map((d) => d.card_id));
 }
 
 export const FREE_BOOSTERS_PER_DAY = 2;
+export const PAID_BOOSTER_PRICE = 150;
+export const MAX_PAID_BOOSTER_PACKS = 20;
 
 export function parisToday() {
   return new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Paris" }).format(new Date());
@@ -213,11 +248,12 @@ export function parisToday() {
 export async function fetchFreeBoosters(): Promise<number> {
   const { data: auth } = await supabase.auth.getUser();
   if (!auth.user) return 0;
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("profiles")
     .select("free_boosters_used, free_boosters_day")
     .eq("id", auth.user.id)
     .maybeSingle();
+  if (error) throw error;
   if (!data || data.free_boosters_day !== parisToday()) return FREE_BOOSTERS_PER_DAY;
   return Math.max(0, FREE_BOOSTERS_PER_DAY - data.free_boosters_used);
 }

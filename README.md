@@ -30,3 +30,27 @@ cd <repository-name>
 npm i
 npm run dev
 ```
+
+## Hébergement gratuit sur Cloudflare Workers
+
+Le build Nitro produit un Worker Cloudflare dans `.output/server`. Après avoir créé
+un compte Cloudflare et connecté Wrangler (`npx wrangler login`), connectez le dépôt
+GitHub à Workers Builds. Utilisez `npm run build` comme commande de build et
+`npx wrangler deploy --config .output/server/wrangler.json` comme commande de
+déploiement.
+
+Dans les variables de build Cloudflare, renseignez `VITE_SUPABASE_URL` et
+`VITE_SUPABASE_PUBLISHABLE_KEY`. Dans les variables d'environnement du Worker,
+renseignez `SUPABASE_URL` et `SUPABASE_PUBLISHABLE_KEY`.
+
+Ajoutez les secrets serveur dans Cloudflare avec `npx wrangler secret put NOM`,
+notamment `SUPABASE_SERVICE_ROLE_KEY`, `LEGIFRANCE_CLIENT_ID` et
+`LEGIFRANCE_CLIENT_SECRET`. La clé `SUPABASE_SERVICE_ROLE_KEY` ne doit jamais
+être une variable `VITE_*`, ni être commitée ou exposée au navigateur.
+
+Pour le preview local, copiez `.dev.vars.example` en `.dev.vars` et renseignez-y
+les valeurs serveur (ce fichier est ignoré par Git). Puis lancez
+`npm run preview:cloudflare`. Pour déployer manuellement sur le sous-domaine
+Cloudflare `workers.dev`, lancez `npm run deploy:cloudflare`. Le nom du Worker est
+défini dans `wrangler.jsonc`. Les migrations SQL Supabase doivent être appliquées
+séparément dans le projet Supabase avant la mise en ligne.
